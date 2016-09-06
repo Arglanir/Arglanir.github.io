@@ -1,0 +1,9 @@
+﻿<h3>Le mode blog marche !</h3>
+Vous pouvez l'activer ou le désactiver dans la section "Options".<br/>
+A priori ce mode risque de devenir le mode par défaut tantôt, comme il permet d'avoir accès directement aux dernières nouvelles postées.<br/>
+<br/>
+Pour ce mode, je parse la liste des pages à laquelle j'ai ajouté pour chaque page une date, je stocke les dates dans un tableau,
+et pour chaque date je conserve les articles liés dans un tableau associatif.
+Je trie le tableau des dates, puis je crée le menu en fonction de ces dates. Et enfin je force à afficher la tout première page de la liste.<br/>
+<br/>
+<strike>Ah, ça me fait remarquer qu'il y a maintenant une régression : si on veut charger une page en particulier au démarrage, ça ne marchera pas... Je vais corriger cela.</strike>

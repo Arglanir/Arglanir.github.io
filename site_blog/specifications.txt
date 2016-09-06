@@ -1,0 +1,6 @@
+index.html
+-> demande content/pages.txt
+		contient lignes:	id|date|titre|keywords ou Surtitre (genre mois)
+-> affiche page content/home.txt
+-> demande pages content/id.txt et les affiche
+	-> peuvent contenir du javascript mais pas de document.write ! - les scripts sont exécutés à la fin

@@ -1,0 +1,4 @@
+<!-- history -->
+<h3>Manipulation de l'historique</h3>
+<p>J'ai découvert la fonction <code>history.pushState({},"Titre","Nouvelle URL de la page")</code>
+qui vous permet de voir directement dans votre barre de navigation le lien d'accès direct à la page sur laquelle vous vous trouvez... histoire de faire comme Facebook ou Google :-)</p>

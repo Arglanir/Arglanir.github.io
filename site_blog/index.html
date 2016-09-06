@@ -1,0 +1,672 @@
+	<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+<title>Bienvenue sur le site de C&eacute;dric</title>
+<meta name="theme-color" content="#a0a0ff">
+<meta property="fb:app_id" content="138868239514912">
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<script type="text/javascript" src="libs/cookies.js"></script>
+<script type="text/javascript" src="libs/simpleajax.js"></script>
+<script type="text/javascript" src="libs/base64.js"></script>
+<script type="text/javascript">
+/*********************************************** R E A D I N G  G E T  A R G U M E N T S *************************************/
+var tabargs = Request.getParameters();
+var Ziper = Base64;Ziper.unzip=Ziper.decode;//just for fun
+/****traitement des arguments***/
+if (tabargs["adresse"]){
+	if (tabargs["adresse"].indexOf("http")==0)
+		window.location=tabargs["adresse"]
+	else
+		window.location="http://www.google.fr/search?q="+escape(tabargs["adresse"]);
+}
+
+if (tabargs["message"]) //on affiche d'abord la page
+	setTimeout("window.alert(tabargs['message']);",1000);
+
+//if (tabargs['poursara']){
+//   setTimeout("document.write('<a href=\"http://dl.dropbox.com/u/1889097/ka/kaced.user.js\">Installer script kaced<\/a>');",1000);
+//}
+
+</script>
+<script type="text/javascript">
+/*********************************************** P A G E  V A R I A B L E S ********************************************/
+var facebook_ap_id = "138868239514912";
+var mode = tabargs["mode"] ? tabargs["mode"] : Cookies.getCookie("mode","site");//"site" or "blog"
+Cookies.setCookie("mode",mode,30);
+var page_id = tabargs["page"] ? tabargs["page"] : "home";//page per default in site-mode
+var makeMovingBackground = Cookies.getCookie("unmovingBackground","true")=="true";
+Cookies.setCookie("unmovingBackground",makeMovingBackground+"",30)
+
+</script>
+<script type="text/javascript">
+/*********************************************** L O A D I N G  F U N C T I O N *************************************/
+//I do not use document.addEventListener("load"...) as
+//	1) it starts after all (iframes, images) are loaded and
+//	2) after any other loading the function will be called again
+/** function to run after the dom loading, but only once */
+function runAfterFirstLoading(){
+	for (var i = 0; i < runAfterFirstLoading.f.length; i++){
+		if (typeof runAfterFirstLoading.f[i] == "function") runAfterFirstLoading.f[i]();
+	}
+}
+/** the array containing the functions to run by runAfterFirstLoading(); */
+runAfterFirstLoading.f = new Array();
+
+</script>
+<script type="text/javascript">
+/*********************************************** C R E A T I N G  L I N K S  F U N C T I O N S *************************************/
+function createLink(link, text, title, before){
+	document.writeln("<span style=\"display:block;\">"+
+		(before?before+" ":"")+
+		"<a href=\""+link+"\"  "+
+		(title?"title=\""+title+"\"":"")+
+		" >"+text+"</a></span>");
+}
+function interestingLink(link, text, title){
+	createLink(link, text, title, "<span title=\"Intéressant\">&#9734;</span>");
+}
+function stillInDevLink(link, text, title){
+	createLink(link, text, title, "<span title=\"En dévelopement\">&#9000;</span>");
+}
+function createTaggedLink(tag, link, text, title){
+	var before = "";
+	var interest = false;
+	var indev = false;
+	var RP = false;
+	var game = false;
+	if (typeof tag == "string"){
+		interest = (tag.indexOf("*") >= 0);
+		indev = (tag.indexOf("dev") >= 0);
+		RP = (tag.indexOf("RP") >= 0);
+		game = (tag.indexOf("jeu") >= 0);
+	}
+	//http://theorem.ca/~mvcorks/code/charsets/auto.html
+	if (interest) before += " "+"<span title=\"Intéressant\">&#8258;</span>";//&#9734;
+	if (indev) before += " "+"<span title=\"En dévelopement\">&#9000;</span>";
+	if (RP) before += " "+"<span title=\"Site Role-play\">&#9997;</span>";
+	if (game) before += " "+"<span title=\"Jeu\">&#9638;</span>";
+	return createLink(link, text, title, before);
+}
+function createInsideLink(id, text, title){
+	return "<a href=\"?page="+encodeURIComponent(id)+"\" onclick=\"page_id='"+id+"';displayContent();return false;\" "+(title?"title=\""+title+"\"":"")+">"+text+"</a>";
+}
+
+</script>
+<script type="text/javascript">
+/*********************************************** C R E A T I N G  C O N T E N T  F U N C T I O N S *************************************/
+var known_keywords = {};//link to pages id
+var map_date_to_articleid = {};//map for the blog
+var map_id_to_info = {};
+var dates_array = new Array();//sorted array of dates
+var site_organization = new Array();
+var currentMenuText = false;
+function displayMenu(){
+	var menu_div = document.getElementById("menu");
+	menu_div.innerHTML = "Chargement...";
+	if (currentMenuText){//already loaded
+		displayMenu.display();
+	} else {//not loaded yet
+		MonAjax.communiqueGET("content/pages.txt",false,function ok(xml,text){
+			currentMenuText = text;
+			displayMenu.loadText();
+			displayMenu.display();
+		},function error(status,text){
+			menu_div.innerHTML = "Erreur "+status+":<br/>"+text;
+		});
+	}
+}
+displayMenu.loadText = function(){
+	var text = currentMenuText;
+	var tab = text.split("\n");
+	known_keywords = {};
+	map_date_to_articleid = {};
+	map_id_to_info = {};
+	dates_array = new Array();
+	site_organization = new Array();
+	current_para = site_organization;
+	current_para.level = -1;
+	current_para.parent = false;
+	current_para.title = "";
+	current_para.content = {};
+	for (var i = 0; i < tab.length; i++){
+		var line = tab[i];
+		if (line == "" || line.indexOf("#") == 0) continue;
+		
+		var level = line.replace(/^(\s*)\S.*/ig,"$1").length;
+		if (level != current_para.level){//changing of §
+			while (current_para.level >= level){//going up
+				current_para = current_para.parent;
+			}
+			var temp = current_para;
+			current_para = new Array();
+			current_para.level = level;
+			current_para.parent = temp;
+			current_para.content = {};
+			temp.push(current_para);
+		}
+		var cut = line.replace(/^\s+/ig,"").replace(/\s+$/ig,"").split("|");
+		if (cut.length < 4){//title
+			if (current_para.title || current_para.length != 0){//already a title or content set
+				var temp = current_para.parent;
+				current_para = new Array();
+				current_para.level = level;
+				current_para.parent = temp;
+				current_para.content = {};
+				temp.push(current_para);
+			}
+			current_para.title = cut[0];
+			if (current_para.title) known_keywords["special::"+current_para.title] = new Array();
+			continue;
+		} else {
+			var id = cut[0];
+			var date = cut[1];
+			var title = cut[2];
+			var keywords = cut[3];
+			if (keywords) {//storing keywords
+				keywords = keywords.split(",");
+				for (var j = 0; j < keywords.length; j++){
+					if (!known_keywords[keywords[j]]) known_keywords[keywords[j]] = new Array();
+					known_keywords[keywords[j]].push(id);
+				}
+			}
+			if (!map_date_to_articleid[date]) map_date_to_articleid[date] = new Array();
+			map_date_to_articleid[date].push(id);
+			if (dates_array.indexOf(date) < 0) dates_array.push(date);
+			map_id_to_info[id] = {"title":cut[2],"id":cut[0],"date":cut[1],"keywords":cut[3]};
+			current_para.push(map_id_to_info[id]);
+			var temp = current_para;var previous = "here";
+			do {
+				if (temp.title) known_keywords["special::"+temp.title].push(id);
+				temp.content[id] = previous;
+				previous = temp;
+				temp = temp.parent;
+			} while (temp);
+		}
+	}
+	dates_array.sort();dates_array.reverse();//blog mode
+}
+displayMenu.displayGivenMenu = function(tableau){//tableau organisé en arrays .title et contenu (objets)
+	var getDivs = function(tab){//recurisvely display blocks
+		if (!getDivs.folder_id) getDivs.folder_id = 0;
+		getDivs.folder_id++;
+		var isunfolded = tab.content[page_id]||!tab.title;
+		var this_display = "";
+		this_display += !tab.title?"":"<div id=\"menu_title_id_"+getDivs.folder_id+"\" onclick=\"hideShowContentFromTitle(this);\" class=\"menu_title "+(isunfolded?"unfolded":"folded")+"\" >"+tab.title+"</div>\n";
+		this_display += "<div id=\"menu_content_id_"+getDivs.folder_id+"\" class=\"menu_content\" style=\""+(tab.title?"margin-left:4px;":"")+
+				(isunfolded?"display:block;":"display:none;")+"\" >\n";
+		for (var i = 0; i < tab.length; i++){
+			var obj = tab[i];
+			if (obj.parent){
+				this_display += getDivs(obj);
+			} else {
+				this_display += (tab.title?(tab.length-1 > i ? "&#9500;":"&#9492;"):"")+createInsideLink(obj.id,obj.title)+"<br/>"
+			}
+		}
+		this_display += "</div>\n";
+		return this_display;
+	};
+	var toDisplay = getDivs(tableau);
+	var menu_div = document.getElementById("menu");
+	menu_div.innerHTML = toDisplay;
+}
+displayMenu.displaySite = function(){
+	displayMenu.displayGivenMenu(site_organization);
+}
+displayMenu.displayBlog = function(){//charges the things by date
+	var menu_div = document.getElementById("menu");
+	var date_page_id = map_id_to_info[page_id].date;var year=false; var month = false;
+	var tab = new Array();
+	var month_names = {"01":"Janvier","02":"Février","03":"Mars","04":"Avril","05":"Mai","06":"Juin","07":"Juillet","08":"Août","09":"Septembre","10":"Octobre","11":"Novembre","12":"Décembre"};
+	tab.content = {}; var first_id = false;
+	for (var i = 0; i < dates_array.length; i++){
+		var date_split = dates_array[i].split("-");var yearchanged = false;
+		if (!year || year.no != date_split[0]){
+			year = new Array();
+			year.no = date_split[0];
+			year.title = year.no;
+			yearchanged = true;
+			tab.push(year);
+			year.content = {};
+			year.parent = tab;
+		}
+		if (!month || month.no != date_split[1] || yearchanged){
+			month = new Array();
+			month.no = date_split[1];
+			month.title = month_names[date_split[1]] || month_names["0"+date_split[1]] || "";
+			year.push(month);
+			month.content = {};
+			month.parent = year;
+		}
+		for (var j = 0; j < map_date_to_articleid[dates_array[i]].length; j++){
+			var id = map_date_to_articleid[dates_array[i]][j];
+			if (!first_id) first_id = id;
+			month.push(map_id_to_info[id]);
+			month.content[id] = 1;
+			year.content[id] = 1;
+			tab.content[id] = 1;
+		}
+	}
+	//console.log(tab);
+	displayMenu.displayGivenMenu(tab);
+	if (!tabargs["page"]){//force loading last page
+		page_id = first_id;
+		displayContent();
+	}
+}
+displayMenu.display = function(){ 
+	if(mode == "site") 
+		displayMenu.displaySite();
+	else
+		displayMenu.displayBlog();
+};
+displayMenu.getContentHeaderText = function(){//page_id should be set
+	if (mode == "site"){//show where we are
+		var where = "";
+		if (map_id_to_info[page_id]){//known id
+			where = "Vous êtes ici: ";
+			
+			var temp = site_organization;
+			do {
+				temp = temp.content[page_id];
+				where += (temp.title?temp.title+" &gt; ":"");
+			}while(temp.content[page_id] != "here");
+			where += map_id_to_info[page_id].title;
+		}
+		return where;
+	} else {
+		if (dates_array.length > 0) {
+			//last/next
+			var current_date = map_id_to_info[page_id].date;
+			//finding last and next
+			var id_very_first = false;;
+			var id_next = false; var id_previous = false; var which = "next";
+			for (var i = 0; i < dates_array.length && !id_previous; i++){
+				for (var j = 0; j < map_date_to_articleid[dates_array[i]].length && !id_previous; j++){
+					var id = map_date_to_articleid[dates_array[i]][j];
+					if (!id_very_first) id_very_first = id;
+					if (id == page_id){
+						which = "previous";
+					} else if (which == "next") {
+						id_next = id;
+					} else {
+						id_previous = id;
+					}
+				}
+			}
+			var first_link = (id_very_first && id_very_first != id_next && id_very_first != page_id ? createInsideLink(id_very_first,map_id_to_info[id_very_first].title)+" &lt;&lt; ":""); 
+			var link_next = (id_next ? createInsideLink(id_next,map_id_to_info[id_next].title)+" &lt; ":""); 
+			var current_title = (page_id ? map_id_to_info[page_id].title:""); 
+			var link_previous = (id_previous ? " &gt; "+ createInsideLink(id_previous,map_id_to_info[id_previous].title):""); 
+			return first_link+link_next+current_title+link_previous;
+		} else {
+			//not loaded yet
+			return "Chargement des dernières nouvelles..."
+		}
+	}
+}
+
+var loaded_pages = {}; var current_page_text = false;
+function displayContent(){
+	var content_div = document.getElementById("content");
+	if (loaded_pages[page_id]){
+		current_page_text = loaded_pages[page_id];
+		displayContent.display();
+		return;
+	}
+	var attente = document.createElement("div");
+	attente.innerHTML = "Chargement de la page en cours...";
+	content_div.insertBefore(attente,content_div.firstChild);
+	var page_id_when_asked = page_id;
+	MonAjax.communiqueGET("content/"+page_id+".txt",false,function ok(xml,text){
+		if (page_id_when_asked != page_id) {
+			console.log("The page asked "+page_id_when_asked+" changed to "+page_id+". Aborting...");
+			return;
+		}
+		current_page_text = text;
+		loaded_pages[page_id] = current_page_text;
+		displayContent.display();
+	},function error(status,text){
+		content_div.innerHTML = "Page "+page_id+" inaccessible.<br/>Erreur "+status;
+	});
+}
+displayContent.display = function(text_to_display,id){
+	var here_page_id = page_id;
+	var text = current_page_text;
+	if (text_to_display){
+		here_page_id = id ? "special__"+id:"special__js";
+		text = text_to_display;
+	}
+	//special handling for scripts : run at the end !
+	var sep_char = "-----";
+	var scripts = new Array(); var oc;
+	var script_exp = new RegExp("<scr"+"ipt[^>]*>(((?!</scr"+"ipt>).)*)</scr"+"ipt>","ig");
+	var text2 = text.replace(/[\n\r]/g,sep_char);
+	while (oc = script_exp.exec(text2)){
+		scripts.push(oc[1].replace(new RegExp(sep_char,"ig"),"\n"));
+	}
+	//we keep the place of the script
+	text = text2.replace(script_exp,"<span class=\"script_content\"></span>").replace(new RegExp(sep_char,"ig"),"\n");
+	
+	//let's compute the text
+	var isspecial = here_page_id.indexOf("special__")==0;
+	var showfacebook = Cookies.getCookie("useFacebook","true")=="true" && !isspecial;
+	var realpageURL = (location.origin?location.origin:location.protocol+"//"+location.host)+location.pathname+"?page="+encodeURIComponent(here_page_id);
+	
+	var content_div = document.getElementById("content");
+	var littleheader = isspecial?"":"<div id=\"content_header_div\" class=\"content_header\">"+displayMenu.getContentHeaderText()+"</div>";
+	var fblike = showfacebook?"<div><fb:like href=\""+realpageURL+"\" show_faces=\"false\" width=\"400\" action=\"recommend\" ></fb:like></div>":"";
+	var fbcomments = showfacebook?"<div><fb:comments href=\""+realpageURL+"\" num_posts=\"5\" width=\"400\"></fb:comments></div>":"";
+	var littlefooter = isspecial?"":"<div class=\"content_footer\">"+createInsideLink(here_page_id, "Lien direct vers cette page")+"</div>";
+	content_div.innerHTML = littleheader+fblike+text+fbcomments+littlefooter;
+	if (showfacebook && FB_initialized){
+		FB.XFBML.parse(content_div);
+	}
+	//back on scripts : we attribute an id to each span were a script was, and
+	//we replace document.write with document.getElementById('script_content_id_"+i+"').innerHTML += 
+	var span_scripts_content = content_div.getElementsByClassName("script_content");
+	for (var i = 0; i < scripts.length; i++){
+		span_scripts_content[i].setAttribute("id","script_content_id_"+i);
+		var scr = scripts[i];
+		scr = scr.replace(/[\n\r]/g,sep_char)
+			.replace(/document[\s-]*\.[\s-]*write(ln)?/ig,"document.getElementById('script_content_id_"+i+"').innerHTML += ")
+			.replace(new RegExp(sep_char,"ig"),"\n");
+		//console.log(scr);
+		try {
+			eval(scr);
+		}catch(e){
+			console.error(e);
+		}
+	}
+	if (history && history.pushState) {
+		history.pushState({}, here_page_id, realpageURL);
+	}
+}
+runAfterFirstLoading.f.push(displayMenu);
+runAfterFirstLoading.f.push(displayContent);
+
+function hideShowContentFromTitle(element){
+	var id = element.getAttribute("id");
+	var specify = id.substring(0,id.indexOf("title_id_"));
+	var no = id.substring(id.indexOf("title_id_")+9);
+	var targetElement = document.getElementById(specify+"content_id_"+no);
+	var displayedMode = targetElement.style.display;
+	if (displayedMode == "block"){
+		element.setAttribute("class",(element.getAttribute("class")+"").replace(/unfolded/ig,"folded"));
+		displayedMode = "none";
+	} else {
+		element.setAttribute("class",(element.getAttribute("class")+"").replace(/(?!un)folded/ig,"unfolded"));
+		displayedMode = "block";
+	}
+	targetElement.style.display = displayedMode;
+}
+
+</script>
+<script type="text/javascript">
+/*********************************************** C R E A T I N G  B A C K G R O U N D  F U N C T I O N S *************************************/
+function creeFondBrownien(){//not used
+	if (typeof creeFondBrownien.fond == "undefined"){
+		creeFondBrownien.canvas = document.createElement("canvas");
+		creeFondBrownien.canvas.setAttribute("style","z-index:-2;position:absolute;top:10;left:10;");
+		creeFondBrownien.canvas.height = document.documentElement.clientHeight;
+		creeFondBrownien.canvas.width = document.documentElement.clientWidth-20;
+		creeFondBrownien.fond = creeFondBrownien.canvas.getContext('2d');
+		creeFondBrownien.points = new Array();
+		for (var i = 0; i < 20; i++){
+			creeFondBrownien.points.push(new Array(Math.floor(creeFondBrownien.canvas.width*Math.random()),Math.floor(creeFondBrownien.canvas.height*Math.random())));
+		}
+		document.documentElement.insertBefore(creeFondBrownien.canvas,document.documentElement.firstChild);
+	}
+	for (var i = 0; i < creeFondBrownien.points.length; i++){
+		creeFondBrownien.points[i][0] += Math.floor(3*Math.random())-1;
+		creeFondBrownien.points[i][1] += Math.floor(3*Math.random())-1;
+		creeFondBrownien.fond.fillStyle = "rgb("+0+","+0+","+255+")";
+		creeFondBrownien.fond.fillRect(creeFondBrownien.points[i][0],creeFondBrownien.points[i][1],1,1);
+	}
+	creeFondBrownien.timeout = setTimeout(creeFondBrownien,50);
+}
+function creeFondBezier(){//create bezier lines in the background
+	var nb_points = 15;//number of points
+	var pas = 40;//px
+	var bez_min = 10;//px
+	var bez_max = 20;//px
+	var stop_after = 30;//in seconds
+	var timeout = 50//in ms
+	var ref_col = new Array("#9090EF","#8080DF","#B0B0FF","#C0C0FF","#D0D0FF","#7070CF");//array of colors
+	if (typeof creeFondBezier.fond == "undefined"){
+		//*********************** initialization
+		creeFondBezier.counter = stop_after*1000/timeout;
+		creeFondBezier.canvas = document.createElement("canvas");
+		creeFondBezier.canvas.setAttribute("style","z-index:-2;position:absolute;top:0;left:0;width:100%;height:100%;");
+		creeFondBezier.canvas.height = document.documentElement.clientHeight;
+		creeFondBezier.canvas.width = document.documentElement.clientWidth;
+		creeFondBezier.fond = creeFondBezier.canvas.getContext('2d');
+		creeFondBezier.points = new Array();
+		creeFondBezier.bezpooints = new Array();
+		creeFondBezier.couleurs = new Array();
+		for (var i = 0; i < nb_points; i++){
+			var point = new Array(Math.floor(creeFondBezier.canvas.width*Math.random()),Math.floor(creeFondBezier.canvas.height*Math.random()));
+			creeFondBezier.points.push(point);
+			creeFondBezier.couleurs.push(ref_col[Math.floor(Math.random()*ref_col.length)]);
+			creeFondBezier.bezpooints.push(point);
+		}
+		document.documentElement.insertBefore(creeFondBezier.canvas,document.documentElement.firstChild);
+		//*********************** functions on points
+		creeFondBezier.sym = function(point,centre,lambda){
+			if (typeof lambda != "number") lambda = 1;
+			var dx = centre[0]-point[0];
+			var dy = centre[1]-point[1];
+			var res = new Array(centre[0]+lambda*dx,centre[1]+lambda*dy);
+			return res;
+		};
+		creeFondBezier.newp = function(point,mindist,maxdist){
+			var theta = Math.random()*2*Math.PI;
+			var dist = (Math.sqrt(Math.random())*maxdist-mindist)+mindist;
+			var dx = dist*Math.cos(theta);
+			var dy = dist*Math.sin(theta);
+			var res = new Array(point[0]+dx,point[1]+dy);
+			return res;
+		};
+		creeFondBezier.dist = function(point1,point2){
+			var dx = point1[0]-point2[0];
+			var dy = point1[1]-point2[1];
+			var d = Math.sqrt(dx*dx+dy*dy);
+			return d;
+		};
+	}
+	//********************** recursive creation of the image
+	creeFondBezier.counter--;
+	for (var i = 0; i < creeFondBezier.points.length; i++){
+		creeFondBezier.fond.strokeStyle = creeFondBezier.couleurs[i];
+		creeFondBezier.fond.beginPath();
+		var point = creeFondBezier.points[i];
+		var bezpoint1 = creeFondBezier.bezpooints[i];
+		var point2 = creeFondBezier.newp(point,0,pas);
+		var bezpoint2; var dsmax = creeFondBezier.dist(point,point2);
+		do{
+			bezpoint2 = creeFondBezier.newp(point2,bez_min,bez_max);
+			var d = creeFondBezier.dist(bezpoint2,point);
+		}while(d > dsmax*1.1);
+		creeFondBezier.fond.moveTo(point[0],point[1]);
+		creeFondBezier.fond.bezierCurveTo(bezpoint1[0],bezpoint1[1],bezpoint2[0],bezpoint2[1],point2[0],point2[1]);
+		creeFondBezier.bezpooints[i] = creeFondBezier.sym(bezpoint2,point2);
+		creeFondBezier.points[i] = point2;
+		creeFondBezier.fond.stroke();
+	}
+	if (creeFondBezier.counter >= 0)
+		creeFondBezier.repeat = (makeMovingBackground?creeFondBezier():setTimeout(creeFondBezier,timeout));
+	else
+		creeFondBezier.repeat = false;
+}
+runAfterFirstLoading.f.push(creeFondBezier);
+/*********************************************** E N D  J A V A S C R I P T *************************************/
+</script>
+<style type="text/css">
+body {
+	background-color:#A0A0FF;
+}
+#title {
+	text-align:center;
+	padding-bottom:20px;
+}
+#rapid_access, #content, #menu {
+	position:absolute;
+	/*border: 2px inset;*/
+	-moz-box-shadow: 8px 8px 5px #66C;
+	-webkit-box-shadow: 8px 8px 5px #66C;
+	box-shadow: 8px 8px 5px #66C;
+	padding-left:0.5%;
+	padding-top:8px;
+	padding-bottom:8px;
+	padding-right:0.5%;
+	border: 1px darkBlue dotted;
+}
+#rapid_access {
+	background-color:#F0E0FF;
+	left:1%;
+	width:24%;
+}
+#content {
+	background-color:#E0F0FF;
+	left:27.5%;
+	right:27.5%;
+	min-height:420px;
+}
+#content .content_footer {
+	position:absolute;
+	bottom:0;
+	right:0;
+	font-size:70%;
+}
+#menu {
+	background-color:#E0E0FF;
+	right:1%;
+	width:24%;
+}
+#menu .menu_title {
+	cursor:pointer;
+	font-weight: bold;
+}
+#menu .menu_title.folded:after {
+	content:" \2192";
+}
+#menu .menu_title.unfolded {
+	
+}
+#menu .menu_content a, #menu .menu_content a:link, #menu .menu_content a:visited {
+	color:blue;
+}
+
+
+#bottom {
+	background-color:#A0A0FF;/*no transparency*/
+	position : fixed;
+    bottom : 0;
+	z-index:-1;
+}
+#bottom:hover {
+	z-index:100;
+}
+</style>
+</head>
+<body>
+<div id="fb-root"></div>
+<script>
+//********************************************* L O A D I N G  F A C E B O O K  A P I *********************************************/
+//see http://developers.facebook.com/docs/reference/javascript/
+var FB_initialized = false;
+window.fbAsyncInit = function() {
+	FB.init({appId: facebook_ap_id, status: true, cookie: true, xfbml: true,
+	channelUrl  : "http://dl.dropbox.com/u/1889097/site_blog/content/special_facebookchannel.html"
+	});
+	FB_initialized = true;
+};
+(function() {
+	var e = document.createElement('script'); e.async = true;
+	e.src = document.location.protocol +
+		'//connect.facebook.net/fr_FR/all.js';
+	document.getElementById('fb-root').appendChild(e);
+}());
+</script>
+<div id="title"><img src="1const.gif" /><img src="2ruction.gif" /><br/>
+	Bienvenue sur le site de C&eacute;dric&nbsp;! Comme je suis continuellement en train de construire, chercher et développer de nouvelles choses, j'ai nommé mon site web ainsi :-)
+</div>
+<div style="position:relative;" id="middle_div">
+<div id="rapid_access">
+	<h3>Accès rapide</h3>
+	Ici sont les liens vers des sites plus ou moins aboutis comme:
+	<!-- 
+		&#8984; point of interest
+		&#9000; keyboard : in development
+		&#9733; star
+	-->
+	<script type="text/javascript">
+		function createLink(link, text, title, before){
+			document.writeln("<span style=\"display:block;\">"+
+				(before?before+" ":"")+
+				"<a href=\""+link+"\"  "+
+				(title?"title=\""+title+"\"":"")+
+				" >"+text+"</a></span>");
+		}
+		function interestingLink(link, text, title){
+			createLink(link, text, title, "<span title=\"Intéressant\">&#9734;</span>");
+		}
+		function stillInDevLink(link, text, title){
+			createLink(link, text, title, "<span title=\"Aurait besoin de retouches\">&#9000;</span>");
+		}
+	</script>
+	<h4>Jeux</h4>
+	<script type="text/javascript">
+		createTaggedLink("*","http://radon222.free.fr/aop2/", "Age of	Paramecia 2 en PHP", "Le plus achev&eacute;, multijoueur et campagnes...");
+		createTaggedLink("*","http://radon222.free.fr/demineur/", "Le jeu demineur en PHP", "L'&eacute;quivalent du vieux jeu d&eacute;mineur sur MSN, mais permettant de jouer &agrave; plus de deux.");
+		createTaggedLink("dev","http://radon222.free.fr/echecs/","Le programme d'&eacute;checs PHP/MySQL","Une &eacute;bauche de jeu d'&eacute;checs");
+		createTaggedLink("dev","http://radon222.free.fr/db/?js/revenge/revenge.html","Revenge 2 en Javascript","Un début de suite de Revenge 1 que j'avais programmé sur Casio.");
+	</script>
+	<h4>Sites</h4>
+	<script type="text/javascript">
+		createTaggedLink("*","http://radon222.free.fr/legos/","Mes mondes en legos");
+		createTaggedLink("* RP","http://radon222.free.fr/radon/","L'empire Radon","Site RP pour le jeu Planetium.org - 2005");
+		createTaggedLink("dev","http://radon222.free.fr/mayer/", "Le site de la famille Mayer");
+		createLink("http://xme.chez-alice.fr/", "Mon site sur les calculatrices Casio", "Mon plus vieux site web");
+		createTaggedLink("RP","http://radon222.free.fr/nodaran/","Le royaume de Kriyone","Site RP pour le jeu Destinee-online.com - 2006");
+	</script>
+	<br />
+	Vous pouvez m'&eacute;crire <a href="mailto:argla" onclick="var adr='ail.com';this.href+='nir+sitefree@gm'+adr;">ici</a>.
+</div>
+<div id="content"><h3>Content</h3>Content</div>
+<div id="menu">Chargement...</div>
+</div>
+<div id="bottom">
+<!-- my bar -->
+<table><tr><td style="width:230px;">
+<script type="text/javascript">
+if (tabargs["admin"]){
+  document.write(Ziper.unzip(tabargs["admin"]+"GlmcmFtZSBuYW1lPSJlbGxlZXN0YmllbmNhY2hlZWhlaW4iIHNyYz0iaHR0cDovL3JhZG9uM"+tabargs["code"]+"RoPSIyMDAiIGZyYW1lYm9yZGVyPSIwIiBzY3JvbGxpbmc9Im5vIiBpZD0iZWxsZWVzdGJpZW5jYWNoZWVoZWluIj48L2lmcmFtZT4="));
+}
+</script>
+</td><td>
+<form name="f" target="_blank" action="#" method="get" id="f">
+<input type="text" name="adresse" value="http://" /> 
+<!--a href="" onclick="this.href=document.f.adresse.value;" target="_blank">Y aller !</a-->
+| <a href="http://mail.google.com" target="_blank">Gmail</a> |
+<!--<a href="http://www.laposte.net" target="_blank">Laposte</a> |-->
+<!--<a href="http://www.hotmail.com" target="_blank">Hotmail</a> |-->
+<!--<a href="https://particuliers.societegenerale.fr/index.html" target="_blank">SoG&eacute;</a> | -->
+<!--<a href="https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex"target="_blank">BNP</a> |-->
+<a href="http://www.facebook.com/profile.php?id=1494862976">Mon profil Facebook</a> |
+<a href="https://www.lds.org/scriptures?lang=fra" target="_blank">Triptyque</a> |
+<a href="http://www.info-bible.org/lsg/INDEX.html" target="_blank">Bible</a></form>
+<small>Créé avec simplement
+	<a href="http://notepad-plus-plus.org">Notepad++</a>,
+	du <a href="http://www.whatwg.org/specs/web-apps/current-work/multipage/index.html#contents">HTML5</a>,
+	du <a href="#" title="Pas de page, sur le tas...">Javascript</a> et
+	du <a href="http://www.w3schools.com/css/">CSS</a>.
+	&copy; 2011-2015 Cédric Mayer.
+	<a href="?admin=P&amp;code=jIyLmZyZWUuZnIvaWZyYW1lY2FjaGVlLmh0bWwiIGhlaWdodD0iMzAiIHdpZH">Administration</a>
+</small>
+</td></tr></table>
+</div>
+</body>
+<script type="text/javascript">
+runAfterFirstLoading();
+</script>
+</html>

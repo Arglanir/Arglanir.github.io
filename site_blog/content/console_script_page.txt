@@ -1,0 +1,76 @@
+﻿<h3>Console javascript</h3>
+<p>Comme seul Chrome a une console javascript digne de ce nom, j'ai fait cette petite page pour tester/débuguer ma page sous d'autres navigateurs.
+Notez que les exceptions sont affichées, et une fonction <code>dump()</code> permet de voir le détail d'un objet.
+A droite en petit c'est le code de la touche enfoncée. Les flèches &uarr; et &darr; permettent de revenir dans l'historique.
+</p>
+<p><b>Edit 02/05/2012</b>: Je retire ce que j'ai dit précédemment, la console de Firefox marche plutôt bien quand-même.</p>
+<div id="content_js_result"></div>
+<div id="content_js_input" style="position:relative;">
+<!--form style="display:inline;" action="#" onsubmit="run_js();return false;"-->
+<input type="text" style="width:100%;" id="content_js_input_text"
+	ONKEYDOWN="var e = event ? event : window.event; var code = e.charCode ? e.charCode : e.keyCode;
+	show_key_pressed(e);
+	if (code == 13) run_js();
+	else if (code==38 || code==40) get_old_command(code==38);
+	" />
+<div id="content_js_input_right_debug" style="position:absolute;top:0px;right:0px;font-size:60%;"></div>
+<!--input type="button" value="Eval" onclick="run_js()"/--><!--/form-->
+</div>
+<script type="text/javascript">
+var oldCommands = new Array(); var indexInOldCommand = -1;
+run_js = function(){
+	var input = document.getElementById("content_js_input_text");
+	var txt = input.value;
+	oldCommands.unshift(txt);indexInOldCommand = -1;
+	var output = document.getElementById("content_js_result");
+	output.innerHTML += "<div style=\"color:blue;\">"+txt+"</div>\n";
+	var res ="";
+	try{
+		res = eval(txt.replace(/(console.)?log/ig,"log"));
+	} catch(exp) {
+		res = "ERROR: "+exp;
+	}
+	var todisplay = ""+res;
+	var color = "black";
+	switch(typeof res){
+		//case "object":output.innerHTML += "<div>"+dump(res).replace(/\n/ig,"<br/>")+"</div>\n";break;
+		case "string":
+			if (res.indexOf("ERROR: ")!= -1){
+				color = "red";
+				todisplay = res.substring(7);
+			} else {
+				color = "gray";
+			}
+			break;
+		case "number":color = "#CC00CC";break;
+		default:break;
+	}
+	output.innerHTML += "<div style=\"color:"+color+";\">"+todisplay+"</div>\n";
+	input.value = "";
+}
+log = function(texte){
+	var output = document.getElementById("content_js_result");
+	output.innerHTML += "<div style=\"color:#00CC88;\">"+texte+"</div>\n";
+}
+show_key_pressed = function(e){
+	//console.log(e); for (var k in e) console.log(k+": "+e[k]);
+	var code = e.which ? e.which : e.keyCode;
+	var el = document.getElementById("content_js_input_right_debug");
+	el.innerHTML = code;
+}
+get_old_command = function(istop){
+	indexInOldCommand += istop ? 1 : -1;
+	var input = document.getElementById("content_js_input_text");
+	input.value = oldCommands[indexInOldCommand] ? oldCommands[indexInOldCommand] : "";
+	input.select();
+}
+dump = function(obj){
+	var c = obj.constructor;//"function "
+	c = c ? "" : (c+"").substring(9); c = c ==""?"":"&#9654;"+c.substring(0,c.indexOf("("))+"\n";
+	var s = ""+c;
+	for (var k in obj){
+		s += k+": "+obj[k]+"\n";
+	}
+	return s;
+}
+</script>

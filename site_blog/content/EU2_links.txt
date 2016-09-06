@@ -1,0 +1,5 @@
+﻿<h3>Mes scripts pour EU2</h3>
+<a href="http://www.empireuniverse2.fr/">Empire Universe 2</a> est un jeu de gestion et de stratégie massivement multijoueur. <br/>
+<a href="http://radon222.free.fr/db/?eu2/triangulation.html">Triangulation sur EU2</a><br>
+<a href="http://radon222.free.fr/db/?eu2/affiche_carte.html">Affichage de cartes sur EU2</a><br>
+<a href="http://radon222.free.fr/db/?eu2/trajets_vortex.html">Calcul de trajets par vortex sur EU2</a><br>

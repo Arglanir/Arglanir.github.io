@@ -1,0 +1,2 @@
+<h3>Other page</h3>
+Another page

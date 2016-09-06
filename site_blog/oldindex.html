@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta name="generator" content=
+"HTML Tidy for Windows (vers 14 February 2006), see www.w3.org" />
+<title>Bienvenue sur le site de C&eacute;dric</title>
+
+<script type="text/javascript">
+//<![CDATA[
+
+<!--
+
+/****script qui vérifie les arguments de la page***/
+
+var bouh= location.search.substring(1,location.search.length);
+
+bouh = bouh.split(unescape("%26")); // le etc
+
+var tabargs = new Array();
+
+for (i=0;i<bouh.length;i++){
+
+   var temp = bouh[i].split("=");
+
+    tabargs[temp[0]]=unescape(temp[1]);
+
+}
+
+/****traitement des arguments***/
+
+if (tabargs["adresse"]){
+
+   if (tabargs["adresse"].indexOf("http")==0)
+
+      window.location=tabargs["adresse"]
+
+   else
+
+      window.location="http://www.google.fr/search?q="+escape(tabargs["adresse"]);
+
+}
+
+if (tabargs["message"]) //on affiche d'abord la page
+
+   setTimeout("window.alert(tabargs['message']);",1000);
+
+
+
+if (tabargs['poursara']){
+
+   setTimeout("document.write('<a href=\"http://dl.dropbox.com/u/1889097/ka/kaced.user.js\">Installer script kaced<\/a>');",1000);
+
+}
+
+
+
+//-->
+
+//]]>
+</script>
+</head>
+<body bgcolor="#A0A0FF">
+<center><img src="1const.gif" /><img src="2ruction.gif" /><br />
+<p style="color:red">Comme je suis continuellement en train de
+programmer des outils, pages, aides, ce site est lui aussi
+continuellement en construction.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:70%;text-align:center;">Vous pouvez acc&eacute;der
+n&eacute;anmoins &agrave; d'autres sites plut&ocirc;t
+achev&eacute;s divers, comme :<br />
+<!--a href="./liste.php">Liste de naissance de bébé</a><br /-->
+ -- Jeux --<br />
+<a href="./aop2/" title=
+"Le plus achev&eacute;, multijoueur et campagnes...">Age of
+Paramecia 2 en PHP</a><br />
+<a href="./demineur/" title=
+"L'&eacute;quivalent du vieux jeu d&eacute;mineur sur MSN, mais permettant de jouer &agrave; plus de deux.">
+Le jeu demineur en PHP</a><br />
+<a href="./echecs/" title=
+"Une &eacute;bauche de jeu d'&eacute;checs">Le programme
+d'&eacute;checs PHP/MySQL</a><br />
+-- Sites --<br />
+<a href="./mayer/">Le site de la famille Mayer</a><br />
+<a href="http://xme.chez-alice.fr/" title=
+"Mon plus vieux site web">Mon site sur les calculatrices
+Casio</a><br />
+<a href="./radon/" title="Sur Planetium.org">Mon site sur l'empire
+Radon</a><br />
+<a href="./nodaran/" title="Sur Destinee-online.com">Mon site sur
+le royaume de Kriyone</a><br />
+<a href="./legos/">Mon site sur mes mondes en legos</a><br />
+<!--small><a href="./serendipity/">Mon blog sur ma mission</a><br/></small-->
+<br />
+Vous pouvez m'&eacute;crire <a href="mailto:argla" onclick=
+"var adr='ail.com';this.href+='nir+sitefree@gm'+adr;">ici</a>.</td>
+<td style="text-align:right;">Derni&egrave;res
+programmations:<br />
+<a href="db/?js/tests/readMMMCdata.html">Liseur de donn&eacute;es
+MMMC</a><br />
+<a href="db/?js/tests/testAdvancedTable.html">Affichage
+avanc&eacute; de donn&eacute;es</a><br />
+<a href="db/?eu2/triangulation.html">Triangulation sur
+EU2</a><br />
+<a href="db/?eu2/affiche_carte.html">Affichage de cartes sur
+EU2</a><br />
+<a href="db/?eu2/trajets_vortex.html">Calcul de trajets par vortex
+sur EU2</a><br /></td>
+</tr>
+</table>
+</center>
+<iframe name="elleestbiencacheehein" src="./iframecachee.html"
+height="30" width="200" frameborder="0" scrolling="no" id=
+"elleestbiencacheehein"></iframe> 
+<!--iframe name="UneAutre" src="http://www.mayer.tk" height="1" width="1" FRAMEBORDER=0></iframe-->
+ <!--IFRAME SRC="/demineur" NAME="ZONE1" HEIGHT="350" WIDTH="450">
+
+Désolé mais votre navigateur ne supporte pas les cadres locaux.
+
+</IFRAME-->
+<form name="f" target="_blank" action="#" method="get" id="f">
+<input type="text" name="adresse" value="http://" /> 
+<!--a href="" onclick="this.href=document.f.adresse.value;" target="_blank">Y aller !</a-->
+| <a href="http://mail.google.com" target="_blank">Gmail</a> |
+<a href="http://www.laposte.net" target="_blank">Laposte</a> |
+<a href="http://www.myldsmail.org" target="_blank">MyLDSMail</a> |
+<a href="http://www.hotmail.com" target="_blank">Hotmail</a> |
+<a href="https://particuliers.societegenerale.fr/index.html"
+target="_blank">SoG&eacute;</a> | <a href=
+"https://www.secure.bnpparibas.net/banque/portail/particulier/HomeConnexion?type=homeconnex"
+target="_blank">BNP</a> | <a href=
+"http://www.facebook.com/profile.php?id=1494862976">Mon profil
+Facebook</a> | <a href="http://scriptures.lds.org/fr/" target=
+"_blank">Triptyque</a> | <a href=
+"http://www.info-bible.org/lsg/INDEX.html" target=
+"_blank">Bible</a></form>
+<!-- test
+
+pour
+
+voir si
+
+c'est
+
+effacé
+
+?
+
+-->
+</body>
+</html>

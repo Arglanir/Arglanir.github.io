@@ -1,0 +1,7 @@
+﻿<!-- patatoide -->
+<h3>Créateur de patatoïdes</h3>
+<p>J'avais fait un petit programme sur calculatrice, qui prenait un polygone quelconque,
+et qui le transformait en coupant les angles coupants, pour le transformer en une courbe C1 en +&infin;.</p>
+<p>Comme je voulais tester la capacité du canvas à faire dessiner des formes par l'utilisateur, j'ai refait ce programme en HTML5/Javascript.</p>
+<p>Voilà le lien: <a href="http://dl.dropbox.com/u/1889097/js/tests/testPatatoide.html">testPatatoide.html</a>.</p>
+<p>Essayez donc "Ma propre forme" ! (il faut avoir au moins 2 points pour voir quelque chose - ne marche que sous Chrome malheureusement car event.offsetX n'est pas défini sous Firefox)</p>

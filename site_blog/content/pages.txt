@@ -1,0 +1,21 @@
+﻿#pages.txt
+#contains pages id|date|titre|,-keywords or Surtitre
+#Accueil
+home|2011-03-15|Accueil|javascript,site
+
+Programmations
+	Ce site
+		home|2011-02-28|Ce site|javascript,site
+		roadmap|2011-03-18|Road map|javascript,site
+		mode_blog_ok|2011-03-19|Mode blog|javascript, site, blog, dates, tri
+		console_script_page|2011-03-30|Console JS|javascript, site
+	EU2
+		EU2_links|2011-04-03|Liens directs|EU2, javascript
+		EU2_vortexes|2011-04-03|Vortex|canvas, recherche, chemins, javascript, bezier
+		EU2_cartes|2011-04-14|Cartes|canvas, javascript
+	HTML5
+		patatoide|2011-05-26|Patatoïde|canvas, javascript
+		history|2012-05-02|history.pushState|history, javascript, URL
+derniereprog|2011-03-19|Dernières programmations|javascript,site
+
+special__options| Special|Options|

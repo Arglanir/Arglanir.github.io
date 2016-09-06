@@ -1,0 +1,18 @@
+﻿<h3>Options</h3>
+<script type="text/javscript">
+function creeSelectCookie(name,defaultvalue,obj_values,ext_variable){
+	var returned = "<select onchange=\"Cookies.setCookie('"+name+"',this.value,30);"+(ext_variable?ext_variable+" = this.value;":"")+"\">";
+	var currentvalue = Cookies.getCookie(name,defaultvalue);
+	for (var val in obj_values){
+		returned += "<option value=\""+val+"\" "+(val == currentvalue?"selected":"")+">"+obj_values[val]+"</option>";
+	}
+	returned += "</select><br/>";
+	return returned;
+}
+document.write(creeSelectCookie("mode","site",{"site":"Utilisation en mode website" ,"blog":"Utilisation en mode blog"},"mode"));
+document.write(creeSelectCookie("useFacebook","true",{"false":"Ne pas utiliser l'API de Facebook","true":"Utiliser l'API de Facebook (like et comments)"}));
+document.write(creeSelectCookie("unmovingBackground","false",{"true":"Calculer l'image de fond au départ","false":"Montrer l'évolution de la page de fond"}));
+//document.write(creeSelectCookie("useCache","true",{"true":"Cacher les pages parcourues","false":"Ne pas cacher les pages parcourues"}));
+</script>
+<input type="button" value="Enregistrer et recharger" title="En fait c'est enregistré automatiquement déà, mais c'est une bonne idée de recharger..."
+	onclick="window.location.href='index.html';"/>

@@ -1,0 +1,10 @@
+﻿<h3>Road Map</h3>
+<ul>
+<li>Ajouter du contenu...
+<li>Pages d'information sur les sites à gauche
+<li>Clic sur le mini-header montre les sites de la section
+<li><strike>Permettre le site en mode blog </strike>
+<li>Autoriser la recherche par mots-clefs
+<li>Montrer les mots-clefs
+<li>
+</ul>

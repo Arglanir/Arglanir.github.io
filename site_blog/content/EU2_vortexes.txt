@@ -1,0 +1,15 @@
+﻿<h3>Trajets par vortex</h3>
+Ceci est le premier programme (en plus de mon user script) que j'ai fait pour EU2.
+Dans ce jeu où la carte fait 100x100 cases, pour aller d'un point à un autre il y a parfois un plus court chemin que la ligne droite, grâce à des vortex, qui relient deux cases par un racourci.
+Le problème c'est qu'il n'y avait pas encore de logiciel pratique et direct pour planifier un trajet les utilisant, à part des programmes en PHP ou Java dont la source est inconnue.<br/>
+J'ai donc implémenté l'aglorithme suivant:
+<ul>
+<li>Calcul de la distance <code>d0</code> directe entre les deux points.</li>
+<li>Recherche d'un chemin de distance <code>d1</code>&lt;<code>d0</code> utilisant un seul racourci:
+	je cherche un début de raccourci à une distance <code>dt</code>&lt;<code>d0</code> tel que la distance entre la fin de ce raccourci et l'arrivée soit inférieure à <code>d0-dt</code>.</li>
+<li>Recherche d'un chemin de distance <code>d2</code> utilisant 2 raccourcis avec la règle précédente.</li>
+<li>Recherche d'un chemin de distance <code>d3</code> utilisant 3 raccourcis avec la règle précédente.</li>
+</ul>
+J'utilise la distance minimum calculée à l'étape précédente pour restreindre le nombre de vortex à regarder à l'étape courante.<br/>
+En plus de cela, je charge la liste des vortex dynamiquement en Ajax, et j'affiche le trajet avec l'élément HTML5 <code>&lt;canvas&gt;</code> particulièrement avec des jolies courbes de Bézier.<br/>
+Vous pouvez tester cela ici: <a href="http://radon222.free.fr/db/?eu2/trajets_vortex.html">Calcul de trajets par vortex</a>, indiquez comme départ <code>9030</code> et comme arrivée <code>3090</code>.
