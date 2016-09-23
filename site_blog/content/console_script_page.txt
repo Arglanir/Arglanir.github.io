@@ -1,4 +1,4 @@
-﻿<h3>Console javascript</h3>
+<h3>Console javascript</h3>
 <p>Comme seul Chrome a une console javascript digne de ce nom, j'ai fait cette petite page pour tester/débuguer ma page sous d'autres navigateurs.
 Notez que les exceptions sont affichées, et une fonction <code>dump()</code> permet de voir le détail d'un objet.
 A droite en petit c'est le code de la touche enfoncée. Les flèches &uarr; et &darr; permettent de revenir dans l'historique.

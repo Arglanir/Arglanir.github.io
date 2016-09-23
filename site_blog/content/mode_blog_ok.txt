@@ -1,4 +1,4 @@
-﻿<h3>Le mode blog marche !</h3>
+<h3>Le mode blog marche !</h3>
 Vous pouvez l'activer ou le désactiver dans la section "Options".<br/>
 A priori ce mode risque de devenir le mode par défaut tantôt, comme il permet d'avoir accès directement aux dernières nouvelles postées.<br/>
 <br/>

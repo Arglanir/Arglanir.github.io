@@ -1,4 +1,4 @@
-﻿<h3>Trajets par vortex</h3>
+<h3>Trajets par vortex</h3>
 Ceci est le premier programme (en plus de mon user script) que j'ai fait pour EU2.
 Dans ce jeu où la carte fait 100x100 cases, pour aller d'un point à un autre il y a parfois un plus court chemin que la ligne droite, grâce à des vortex, qui relient deux cases par un racourci.
 Le problème c'est qu'il n'y avait pas encore de logiciel pratique et direct pour planifier un trajet les utilisant, à part des programmes en PHP ou Java dont la source est inconnue.<br/>

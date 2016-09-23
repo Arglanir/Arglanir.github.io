@@ -1,4 +1,4 @@
-﻿<h3>Bienvenue</h3>
+<h3>Bienvenue</h3>
 <p>Bienvenue sur mon nouveau site !</p>
 <p>Je l'ai recommencé depuis le début afin de le rendre plus interractif, plus fonctionnel, plus applicatif, plus "pro".</p>
 <p>Il y a donc à droite les liens directs vers d'autres liens, à gauche le plan du site, et ici la présentation des pages du site.</p>
