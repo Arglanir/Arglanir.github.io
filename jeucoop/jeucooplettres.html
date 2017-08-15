@@ -1,0 +1,177 @@
+<html>
+<head>
+<title>Test</title>
+</head>
+<body>
+<div id="main">
+Test !
+</div>
+
+<script type="text/javascript">
+var keys = {};
+var keys2 = {};
+function keyhandler(e) {
+    e = e || event; // to deal with IE
+    keys[e.keyCode] = e.type == 'keydown';
+    keys2[e.key] = e.type == 'keydown';
+}
+var framesPerSecond = 15;
+var maxFramesPerSecond = 30;
+var mainEl = document.getElementById("main");
+var currentLoopLast = Date.now();
+var currentLoopInterval = 1000;
+
+// Little game
+var LG = {};
+LG.players = ["azeqsd", "123456", "uiojkl"];
+LG.alphabet = LG.players[0]+LG.players[1];//"azertyuiopqsdfghjklmwxcvbn1234567890"; // possible letters
+LG.alphabetLength = LG.alphabet.length;
+LG.letterPerSecond = 1.5;
+LG.maxLetters = 150;
+LG.score = 0;
+LG.speedupAfter = 20;
+LG.lastSpeedUp = currentLoopLast;
+LG.nbLettersSinceLastSpeedUp = 0;
+LG.letters = "";
+LG.started = false;
+
+function menu() {
+    mainEl.innerHTML = "Joueur 1 : <input id=\"p1keys\" value=\"azeqsd\"><br/>" + "Joueur 2 : <input id=\"p2keys\" value=\"123456\"><br/>" + 
+        "[Esc] pour faire pause/redémarrer<br/>[Ctrl+C] pour arrêter<br/>"+
+        "Le but est de virer les lettres qui sont sur le bord avant qu'il n'y en ait trop. Coopérez !<br/>"+
+        "<input type=\"button\" id=\"startButton\" value=\"Lancer!\">";
+     function startit() {
+        LG.alphabet = document.getElementById("p1keys").value + document.getElementById("p2keys").value;
+        LG.alphabetLength = LG.alphabet.length;
+        startGame();
+     }
+    document.getElementById("startButton").addEventListener("click", startit, false);
+    document.getElementById("startButton").addEventListener("keydown", startit, false);
+
+}
+
+LG.onkeydown = function(e) {
+    e = e || event; // to deal with IE
+    // 
+    if (e.key.toUpperCase() == "ESCAPE") {
+        if (!LG.started)
+            resumeGame();
+         else
+            pauseGame();
+    }
+    if (!LG.started) return;
+    // remove before
+    var oldScore = LG.score;
+    while (e.key.toLowerCase() == LG.letters[0]) {
+        LG.letters = LG.letters.substring(1);
+        LG.score += 1;
+    }
+    // remove after
+    while (e.key.toLowerCase() == LG.letters[LG.letters.length-1]) {
+        LG.letters = LG.letters.substring(0, LG.letters.length-1);
+        LG.score += 1;
+    }
+    // speedup game
+	if (Math.floor(LG.score/LG.speedupAfter) > Math.floor(oldScore/LG.speedupAfter)) {
+		LG.letterPerSecond *= 1.2;
+		LG.nbLettersSinceLastSpeedUp = 0;
+		LG.lastSpeedUp = Date.now();
+	}
+}
+
+function startGame() {
+    document.addEventListener("keydown", LG.onkeydown, false);
+    resumeGame();
+}
+
+function pauseGame() {
+    console.log("Paused!");
+    LG.started = false;
+}
+function resumeGame() {
+    console.log("Started!");
+    LG.started = true;
+    LG.nbLettersSinceLastSpeedUp = 0;
+	LG.lastSpeedUp = Date.now();
+    displayLittleGame();
+}
+
+function displayLittleGame() {
+	// calculate the current loop interval
+	var currentTime = Date.now();
+	currentLoopInterval = currentTime - currentLoopLast;
+	currentLoopLast = currentTime;
+	
+	// add letters
+	var elapsedTimeMs = currentTime - LG.lastSpeedUp;
+	var neededLetters = Math.floor(elapsedTimeMs*LG.letterPerSecond/1000);
+	// if (neededLetters > LG.nbLettersSinceLastSpeedUp) {
+	//	console.log("Needed letters = "+neededLetters + " <-- "+LG.nbLettersSinceLastSpeedUp);
+	//}
+	//console.log("Needed letters = "+neededLetters);
+	while (neededLetters > LG.nbLettersSinceLastSpeedUp) {
+		var letter = LG.alphabet[Math.floor(Math.random() * LG.alphabetLength)];
+		//if (keys2[letter]) continue;
+		var ind = Math.floor(LG.letters.length/2);
+		var before = LG.letters.substring(0, ind);
+		var after = LG.letters.substring(ind);
+		LG.letters = before+letter+after;
+		LG.nbLettersSinceLastSpeedUp += 1;
+	}
+	
+	// display
+	var towrite = "Lettres par seconde: "+Math.floor(LG.letterPerSecond*10)/10+"<br/><b>Score: "+LG.score+"</b><br>";
+	var color = "green";
+	if (LG.letters.length > LG.maxLetters/3) {
+		color = "orange";
+	}
+	if (LG.letters.length > 2*LG.maxLetters/3) {
+		color = "red";
+	}
+	towrite += '<div style="color:'+color+';text-align:center;">'+LG.letters.toUpperCase()+'</div><br/>';
+	towrite += 'Restant: <span style="color:'+color+';">'+LG.letters.length+'</span> &lt; '+LG.maxLetters+'<br/>';
+	
+	towrite += '<span style="font-size:50%;">Frames per second : '+framesPerSecond + ", Pressed letters: ";
+    for(var k in keys2) {
+        if (keys2[k]) towrite += k.toUpperCase()+" ";
+    }
+    towrite += '</span>'+'<br/>';
+	
+	mainEl.innerHTML = towrite;
+	
+	if (LG.letters.length >= LG.maxLetters) {
+		mainEl.innerHTML += "<br/><span style=\"color:red;\">Perdu !</span><br/>";
+		return;
+	}
+	if (!LG.started) {
+		mainEl.innerHTML += "<br/><span style=\"color:blue;\">Pause !</span><br/>";
+		return;
+	}
+	
+	// stop the game
+	if (keys2.Control && keys2.c) {
+		mainEl.innerHTML += "Game stopped. Please run F5 to restart.";
+		return;
+	}
+	
+	// update the framesPerSecond
+	var displayTime = Date.now() - currentTime;
+	if (1000/(framesPerSecond+1) >= displayTime*2) {
+		if (framesPerSecond < maxFramesPerSecond) framesPerSecond += 1;
+	} else {
+		framesPerSecond -= 1;
+	}
+	setTimeout(displayLittleGame, 1000/framesPerSecond - displayTime);
+}
+
+document.addEventListener("keydown", keyhandler, false);
+document.addEventListener("keyup", keyhandler, false);
+console.log("Test launched!");
+mainEl.innerHTML = "Test launched.";
+
+menu();
+
+</script>
+
+</body>
+</html>
