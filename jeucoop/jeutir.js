@@ -10,7 +10,7 @@ function spaceDisplay(timeInterval) {
         var nbStars = 30;
         spaceDisplay.speed = 10; // pixels per second
         var stars = spaceDisplay.stars = [];
-        var colors = spaceDisplay.colors = ["#fff", "#faa", "#ffa", "#fca", "#aaf"];
+        var colors = spaceDisplay.colors = ["#fff", "#faa", "#ffa", "#fca", "#aaf", "#aff"];
         for (var i = 0; i < nbStars; i++) {
             stars.push({x:Math.random()*canvas.width, y : Math.random()*canvas.height, size : Math.random()*10+1, color: colors[Math.floor(Math.random()*colors.length)]});
         }
@@ -60,8 +60,12 @@ function spaceDisplay(timeInterval) {
     // display each star
     for (var i = 0; i < stars.length; i++) {
         var star = stars[i];
+        
+        var grd=ctx.createRadialGradient(star.x,star.y,1,star.x,star.y,star.size*2);
+        grd.addColorStop(0,star.color);
+        grd.addColorStop(1,"rgba(0, 0, 0, 0.0)");
         //console.log("star at" + star.x+", "+star.y)
-        ctx.strokeStyle = star.color;
+        ctx.strokeStyle = grd;//star.color;
         ctx.beginPath();
         ctx.moveTo(star.x-star.size, star.y);
         ctx.lineTo(star.x+star.size, star.y);
@@ -77,9 +81,44 @@ function spaceDisplay(timeInterval) {
         spaceDisplay.decor.x, spaceDisplay.decor.y,
         // size : shrink it to 50px
         spaceDisplay.decor.size, spaceDisplay.decor.size * spaceDisplay.decor.img.height / spaceDisplay.decor.img.width);
+    
+    
+    
+    // run intersections
+    var listEnemies = [];
+    var listAllies = [];
+    gloop.forEach(function(element) {
+        if (!element.mayHurt) return;
+        (element.enemy ? listEnemies : listAllies).push(element);
+    });
+    // TODO: optimize by grouping by y
+    for (var ie in listEnemies) {
+        for (var ia in listAllies) {
+            var enemy = listEnemies[ie];
+            var ally = listAllies[ia];
+            
+            var x1 = enemy.pos.x;
+            var y1 = enemy.pos.y;
+            if (enemy.offsetCenterY) y1 += enemy.offsetCenterY;
+            var x2 = ally.pos.x;
+            var y2 = ally.pos.y;
+            if (ally.offsetCenterY) y2 += ally.offsetCenterY;
+            var dx = x2 - x1;
+            var dy = y2 - y1;
+            var distance = Math.sqrt(dx*dx + dy*dy);
+            if (distance < enemy.size + ally.size) {
+                // intersection
+                ally.PV -= enemy.damage;
+                enemy.PV -= ally.damage;
+                if (isNaN(enemy.PV)) {
+                    console.log("An error");
+                }
+            }
+        }
+    }
 }
 
-function Projectile1(x, y, dx, dy, forEnemy, speed) {
+function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
     var that = this;
     var canvas = document.getElementById("gameArea");
     
@@ -93,12 +132,24 @@ function Projectile1(x, y, dx, dy, forEnemy, speed) {
     this.pos = {x:x+dx*this.size, y:y+dy*this.size};
     this.forEnemy = forEnemy;
     
+    this.enemy = !forEnemy;
+    this.mayHurt = true;
+    this.damage = damage;
+    this.PV = 1;
+    
+    if (isNaN(damage)) {
+        console.log("error!");
+    }
+
+    
     this.iterate = function (timeInterval) {
+        if (that.PV<=0) return gloop.REMOVEME;
+        
         // update position
         that.pos.x += dx*speed*timeInterval/1000;
         that.pos.y += dy*speed*timeInterval/1000;
         
-        if (that.pos.y < -50) {
+        if (that.pos.y < -50 || that.pos.y > canvas.height + 50) {
             return gloop.REMOVEME;
         }
         
@@ -110,18 +161,69 @@ function Projectile1(x, y, dx, dy, forEnemy, speed) {
         
     }
     
+}
+
+function Asteroid(x, y, img, speed, damage) {
+    var that = this;
+    var canvas = document.getElementById("gameArea");
+    
+    this.size = 50;
+    this.color = "#ffd";
+    
+    var dx = 0;
+    var dy = 1;
+    
+    var distance = Math.sqrt(dx*dx+dy*dy);
+    dx = dx / distance;
+    dy = dy / distance;
+    
+    this.pos = {x:x+dx*this.size, y:y+dy*this.size};
+    this.forEnemy = forEnemy;
+    
+    this.enemy = !forEnemy;
+    this.mayHurt = true;
+    this.damage = damage;
+    if (isNaN(damage)) {
+        console.log("error!");
+    }
+    this.PV = 1;
+    
+    this.iterate = function (timeInterval) {
+        if (that.PV<=0) return gloop.REMOVEME;
+
+        // update position
+        that.pos.x += dx*speed*timeInterval/1000;
+        that.pos.y += dy*speed*timeInterval/1000;
+        
+        if (that.pos.y > canvas.height + 50) {
+            return gloop.REMOVEME;
+        }
+        
+        // draw
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img,
+            // position
+            that.pos.x - that.size/2, that.pos.y - that.size/2,
+            // size : shrink it to 50px
+            that.size, that.size * that.img.height / that.img.width);
+    }
     
 }
 
-function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
+
+function SpaceshipEnemy(speedY, damage, img, origY, destinationY) {
     var that = this;
     var canvas = document.getElementById("gameArea");
     
     // initialize
-    this.pos = {x: canvas.width/2, y: ypos};
+    this.pos = {x: canvas.width/2, y: origY};
     this.size = 50;
     
+    this.enemy = true;
+    this.mayHurt = true;
+    
     this.speed = 200; // pixels per second for moving
+    this.speedY = speedY;
     
     // the spaceship image
     this.img = img;
@@ -136,9 +238,92 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     
     // shoot power
     this.shootMode = 0;
-    this.shootPV = 0;
+    this.shootPV = damage;
+    
+    this.damage = 20;
+    
+    var sizeY = that.size * that.img.height / that.img.width;
+    
+    var destinationX = Math.random() * canvas.width;
     
     this.iterate = function (timeInterval) {
+        if (that.PV<=0) {
+            console.log("I am dead!");
+            return gloop.REMOVEME; // TODO: add explosion
+        }
+
+        // move spaceship
+        // update position
+        if (destinationY>origY) {
+            that.pos.y += that.speedY*timeInterval/1000;
+            if (that.pos.y > destinationY) that.pos.y = destinationY;
+        }
+        if (destinationX < that.pos.x) {
+            that.pos.x -= that.speed*timeInterval/1000;
+            if (that.pos.x < destinationX) that.pos.x = destinationX;
+        }
+        if (destinationX > that.pos.x) {
+            that.pos.x += that.speed*timeInterval/1000;
+            if (that.pos.x > destinationX) that.pos.x = destinationX;
+        }
+        if (that.pos.x == destinationX) {
+            destinationX = Math.random() * canvas.width;
+        }
+        
+        // draw spaceship
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(that.img,
+            // position
+            that.pos.x - that.size/2, that.pos.y - sizeY/2,
+            // size : shrink it to 50px
+            that.size, sizeY);
+        
+        // shoot ?
+        that.timeBeforeNextShoot -= timeInterval;
+        
+        if (that.timeBeforeNextShoot < 0) {
+            var proj = new Projectile1(that.pos.x, that.pos.y, 0, 1, false, 700, that.shootPV);
+            gloop.add(proj);
+            that.timeBeforeNextShoot = that.timeBetweenShoots-200+Math.random()*400;
+        }
+    }
+    
+}
+
+function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
+    var that = this;
+    var canvas = document.getElementById("gameArea");
+    
+    // initialize
+    this.pos = {x: canvas.width/2, y: ypos};
+    this.size = 50;
+    
+    this.speed = 200; // pixels per second for moving
+
+    // the spaceship image
+    this.img = img;
+    
+    // attributes for intersection
+    this.enemy = false;
+    this.mayHurt = true;
+    this.offsetCenterY = that.size * that.img.height / that.img.width / 2;
+    this.damage = 10000;
+
+    
+    // life points
+    this.PV = this.PVmax = 100;
+    
+    // time between shoots
+    this.timeBetweenShoots = 750; // in ms
+    
+    this.timeBeforeNextShoot = this.timeBetweenShoots * Math.random();
+    
+    // shoot power
+    this.shootMode = 0;
+    this.shootPV = 50;
+    
+    this.iterate = function (timeInterval) {
+        
         // update position
         if (keylistener.isPressed(keyLeft)) {
             that.pos.x -= that.speed*timeInterval/1000;
@@ -151,53 +336,34 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
         
         // draw spaceship
         var ctx = canvas.getContext("2d");
+        if (that.PV<=0) {
+            ctx.save();
+            ctx.globalAlpha = 0.4;
+        }
+        
         ctx.drawImage(that.img,
             // position
             that.pos.x - that.size/2, that.pos.y,
             // size : shrink it to 50px
             that.size, that.size * that.img.height / that.img.width);
         
+        if (that.PV<=0) {
+            ctx.restore();
+            return; // no more shooting
+        }
+
         // shoot ?
         that.timeBeforeNextShoot -= timeInterval;
         
         if (that.timeBeforeNextShoot < 0) {
-            var proj = new Projectile1(that.pos.x, that.pos.y, 0, -1, true, 700);
-            gloop.add(proj.iterate);
-            that.timeBeforeNextShoot = that.timeBetweenShoots;
+            var proj = new Projectile1(that.pos.x, that.pos.y, 0, -1, true, 700, that.shootPV);
+            gloop.add(proj);
+            that.timeBeforeNextShoot = that.timeBetweenShoots-200+Math.random()*400;
         }
     }
     
 }
 
-
-function spaceShipDisplay(timeInterval) {
-    var timeInterval = timeInterval || 0;
-    var canvas = document.getElementById("gameArea");
-    if (!spaceShipDisplay.pos) {
-        // initialization
-        spaceShipDisplay.pos = {x: canvas.width/2, y: canvas.height-100};
-        //spaceShipDisplay.color = "#00F";
-        spaceShipDisplay.size = 50;
-        spaceShipDisplay.speed = 200; // pixels per second for moving
-        spaceShipDisplay.img = document.getElementById("spaceship");
-    }
-    // update position
-    if (keylistener.isPressed("q")) {
-        spaceShipDisplay.pos.x -= spaceShipDisplay.speed*timeInterval/1000;
-        if (spaceShipDisplay.pos.x < 0) spaceShipDisplay.pos.x = 0;
-    }
-    if (keylistener.isPressed("d")) {
-        spaceShipDisplay.pos.x += spaceShipDisplay.speed*timeInterval/1000;
-        if (spaceShipDisplay.pos.x > canvas.width) spaceShipDisplay.pos.x = canvas.width;
-    }
-    // draw spaceship
-    var ctx = canvas.getContext("2d");
-    ctx.drawImage(spaceShipDisplay.img,
-        // position
-        spaceShipDisplay.pos.x - spaceShipDisplay.size/2, spaceShipDisplay.pos.y,
-        // size : shrink it to 50px
-        spaceShipDisplay.size, spaceShipDisplay.size * spaceShipDisplay.img.height / spaceShipDisplay.img.width);
-}
 
 var gloop = false;
 var keylistener = false;
@@ -207,12 +373,16 @@ function startMoving() {
     keylistener.start();
     gloop = new GameLoop();
     gloop.add(spaceDisplay);
-    spaceShips = [new SpaceshipPlayer("q", "d", document.getElementById("gameArea").height - 100, document.getElementById("spaceship")),
-            new SpaceshipPlayer("k", "m", document.getElementById("gameArea").height - 75, document.getElementById("spaceship")),
-            new SpaceshipPlayer("ArrowLeft", "ArrowRight", document.getElementById("gameArea").height - 50, document.getElementById("spaceship"))];
+    spaceShips = [new SpaceshipPlayer("q", "d", document.getElementById("gameArea").height - 100, document.getElementById("spaceship1")),
+            new SpaceshipPlayer("k", "m", document.getElementById("gameArea").height - 75, document.getElementById("spaceship2")),
+            new SpaceshipPlayer("ArrowLeft", "ArrowRight", document.getElementById("gameArea").height - 50, document.getElementById("spaceship3"))];
     for (var i = 0; i < spaceShips.length; i++) {
         gloop.add(spaceShips[i].iterate);
     }
+    for (var i = 1; i <= 7; i++) {
+        gloop.add(new SpaceshipEnemy(50, 30, document.getElementById("enemy"+i), -100, 50*i));
+    }
+    
     
     gloop.start();
 }

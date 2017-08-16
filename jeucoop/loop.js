@@ -15,7 +15,7 @@ function GameLoop(options) {
     this.REMOVEME = "REMOVEME"; // in order to remove the function
     
     
-    that.maxFPS = options.maxFPS || 30;
+    that.maxFPS = options.maxFPS || 100;
     that.currentFPS = that.maxFPS;
     
     // add something to the loop
@@ -33,8 +33,16 @@ function GameLoop(options) {
     this.nbObjects = function() {
         return torun.length;
     }
+
+    // running a function on each element (probably used in order to see if there is an intersection
+    this.forEach = function(func) {
+        for (var i = 0; i < torun.length; i++) {
+            func(torun[i]);
+        }
+    }
     
     var currentLoopLast = Date.now();
+    this.currentLoopInterval = 0;
     
     // indicator if loop started (may stop the loop if set to false)
     this.running = false;
@@ -42,19 +50,21 @@ function GameLoop(options) {
     // one iteration loop
     var oneIteration = function () {
         if (!that.running) return;
+        setTimeout(oneIteration, 1000/that.currentFPS);
         
         // calculate the current loop interval
         var currentTime = Date.now();
-        currentLoopInterval = currentTime - currentLoopLast;
+        var currentLoopInterval = that.currentLoopInterval = currentTime - currentLoopLast;
         currentLoopLast = currentTime;
         
         var todelete = [];
         var stoploop = false;
         // loop for executing functions
         for (var i = 0; i < torun.length; i++) {
-              var returned = torun[i](currentLoopInterval);
-              if (returned == that.REMOVEME) todelete.push(i);
-              if (returned == that.STOPLOOP) stoploop = true;
+            var functorun = torun[i].iterate ? torun[i].iterate : torun[i];
+            var returned = functorun(currentLoopInterval);
+            if (returned == that.REMOVEME) todelete.push(i);
+            if (returned == that.STOPLOOP) stoploop = true;
         }
         // loop in order to delete obsolete functions
         while (todelete.length) {
@@ -63,16 +73,15 @@ function GameLoop(options) {
         }
         
         // update the that.currentFPS
-        var displayTime = Date.now() - currentTime;
-        if (1000/(that.currentFPS+1) >= displayTime*2) {
+        var expectedInterval = 1000/that.currentFPS;
+        if (expectedInterval >= currentLoopInterval-1) {
             if (that.currentFPS < that.maxFPS) that.currentFPS += 1;
         } else {
             that.currentFPS -= 1;
         }
-        if (!stoploop)
-            setTimeout(oneIteration, 1000/that.currentFPS - displayTime);
-        else
+        if (stoploop) {
             that.running = false;
+        }
     }
     
     // stopping the loop

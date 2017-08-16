@@ -5,16 +5,52 @@
 <script type="text/javascript" src="keys.js"></script>
 <script type="text/javascript" src="loop.js"></script>
 <script type="text/javascript" src="jeutir.js"></script>
-</head>
-<body id="body" onload="startMoving()">
+<script type="text/javascript">
+function whenEveryThingLoaded() {
+    document.getElementById('loading').innerHTML = "Loaded ! Prepare to fight !";
+    
+    setTimeout(function() {
+        document.getElementById('gameArea').style.display='block';
+        document.getElementById('loading').style.display='none';
+        startMoving()
+    }, 1000);
 
-<canvas id="gameArea" width="400" height="800" style="background-color:#000">
+}
+
+</script>
+
+
+</head>
+<body id="body" onload="whenEveryThingLoaded()">
+<div id="loading">
+Loading...
+</div>
+<canvas id="gameArea" width="400" height="800" style="background-color:#000; display:none;">
 
 </canvas>
 
 
+<div style="display:none;">
 <!-- images to load -->
-<img src="http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png" id="spaceship" style="visibility:hidden;"></img>
+<!-- player spaceships -->
+<img src="http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png" id="spaceship1" style="visibility:hidden;"></img>
+<img src="http://4.bp.blogspot.com/-etyNTo8hpIE/Uf8BfJYeymI/AAAAAAAAA5Q/9emQpKVj1fo/s1600/fighter-01.png" id="spaceship2" style="visibility:hidden;"></img>
+<img src="http://3.bp.blogspot.com/-ddkcnhuU07g/Vllq4DNohkI/AAAAAAAACHs/ZyekdBvAgnk/s1600/mship1.png" id="spaceship3" style="visibility:hidden;"></img>
+
+<!-- enemy spaceships -->
+<img src="https://cdn.emojidex.com/emoji/seal/UFO.png?1417139067" id="enemy1"  style="visibility:hidden;"></img>
+<img src="http://4.bp.blogspot.com/-LdZjudJMNVo/U7MylAvZmoI/AAAAAAAAXoU/iiWVF9Oahnc/s1600/Alien_Spaceship_flying_saucer_400MdTans.gif" id="enemy2"  style="visibility:hidden;"></img>
+<img src="https://openclipart.org/image/800px/svg_to_png/216802/UFO_1.png" id="enemy3"  style="visibility:hidden;"></img>
+<img src="http://space.phillipmartin.info/science_ufo.gif" id="enemy4"  style="visibility:hidden;"></img>
+<img src="https://s12.postimg.org/e0pe9cb5p/VS_demilich.png" id="enemy5"  style="visibility:hidden;"></img>
+<img src="https://1.bp.blogspot.com/-tSPQWjuue2U/V59_Yf_B1UI/AAAAAAAACPY/QySiOZwLn5IYsjn273iNOWXvsncscf2vwCLcB/s1600/evilboss2.png" id="enemy6" style="visibility:hidden;"></img>
+<img src="https://s12.postimg.org/6kq4njngb/VS_demilich.png?dl=1" id="enemy7" style="visibility:hidden;"></img>
+
+<!-- foreground decor -->
+<img src="http://icons.iconarchive.com/icons/zairaam/bumpy-planets/256/asteroid-icon.png"  id="asteroid1" style="visibility:hidden;"></img>
+<img src="http://www.gifmania.com/Gif-Animados-Espacio/Imagenes-Astronomia/Asteroides/Asteroide-Girando-84954.gif" id="asteroid2" style="visibility:hidden;"></img>
+<img src="https://wiki.arcengames.com/images/b/b7/AIWarTitanite.png" id="asteroid3" style="visibility:hidden;"></img>
+
 <!--
 https://orig14.deviantart.net/0043/f/2016/220/c/7/spaceship_pixel_art_by_tk88mangaka-dad512p.png
 http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png
@@ -27,6 +63,6 @@ http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png
 <img src="http://www.icon2s.com/wp-content/uploads/2013/09/planet-neptune.png" id="decor6" style="visibility:hidden;"></img>
 
 
-
+</div>
 </body>
 </html>
