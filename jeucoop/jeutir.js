@@ -2,6 +2,8 @@
 Main library of jeutir.html
 */
 
+var score = 0;
+
 function spaceDisplay(timeInterval) {
     var timeInterval = timeInterval || 0;
     var canvas = document.getElementById("gameArea");
@@ -82,6 +84,9 @@ function spaceDisplay(timeInterval) {
         // size : shrink it to 50px
         spaceDisplay.decor.size, spaceDisplay.decor.size * spaceDisplay.decor.img.height / spaceDisplay.decor.img.width);
     
+    ctx.font = "30px Arial";
+    ctx.fillStyle = "white";
+    ctx.fillText(Math.floor(score),10,30);
     
     
     // run intersections
@@ -110,9 +115,6 @@ function spaceDisplay(timeInterval) {
                 // intersection
                 ally.PV -= enemy.damage;
                 enemy.PV -= ally.damage;
-                if (isNaN(enemy.PV)) {
-                    console.log("An error");
-                }
             }
         }
     }
@@ -123,7 +125,7 @@ function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
     var canvas = document.getElementById("gameArea");
     
     this.size = 2;
-    this.color = "#ffd";
+    this.color = forEnemy ? "#ffd" : "#F66";
     
     var distance = Math.sqrt(dx*dx+dy*dy);
     dx = dx / distance;
@@ -136,12 +138,7 @@ function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
     this.mayHurt = true;
     this.damage = damage;
     this.PV = 1;
-    
-    if (isNaN(damage)) {
-        console.log("error!");
-    }
-
-    
+        
     this.iterate = function (timeInterval) {
         if (that.PV<=0) return gloop.REMOVEME;
         
@@ -211,7 +208,7 @@ function Asteroid(x, y, img, speed, damage) {
 }
 
 
-function SpaceshipEnemy(speedY, damage, img, origY, destinationY) {
+function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
     var that = this;
     var canvas = document.getElementById("gameArea");
     
@@ -229,10 +226,10 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY) {
     this.img = img;
     
     // life points
-    this.PV = this.PVmax = 100;
+    this.PV = this.PVmax = PVmax || damage * 3;
     
     // time between shoots
-    this.timeBetweenShoots = 750; // in ms
+    this.timeBetweenShoots = 1500; // in ms
     
     this.timeBeforeNextShoot = this.timeBetweenShoots * Math.random();
     
@@ -249,6 +246,8 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY) {
     this.iterate = function (timeInterval) {
         if (that.PV<=0) {
             console.log("I am dead!");
+            score += that.PVmax;
+            gloop.add(new SpaceshipEnemy(50, damage*1.1, img, -100, destinationY));
             return gloop.REMOVEME; // TODO: add explosion
         }
 
@@ -293,15 +292,22 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY) {
 function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     var that = this;
     var canvas = document.getElementById("gameArea");
+
+    this.ypostheta = ypos*Math.PI/2;
+    
+    this.yposthetaSpeed = 0.20;// radian/s
     
     // initialize
-    this.pos = {x: canvas.width/2, y: ypos};
+    this.pos = {x: (canvas.width-100)*Math.random()+50, y: ypos};
     this.size = 50;
+    
     
     this.speed = 200; // pixels per second for moving
 
     // the spaceship image
     this.img = img;
+    this.imgRotation = parseInt(img.getAttribute("rotate") || "0");
+
     
     // attributes for intersection
     this.enemy = false;
@@ -322,6 +328,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     this.shootMode = 0;
     this.shootPV = 50;
     
+    
     this.iterate = function (timeInterval) {
         
         // update position
@@ -333,12 +340,18 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
             that.pos.x += that.speed*timeInterval/1000;
             if (that.pos.x > canvas.width) that.pos.x = canvas.width;
         }
+        that.ypostheta += that.yposthetaSpeed*timeInterval/1000;
+        that.pos.y = document.getElementById("gameArea").height-150-50*Math.sin(that.ypostheta)
         
         // draw spaceship
         var ctx = canvas.getContext("2d");
         if (that.PV<=0) {
             ctx.save();
             ctx.globalAlpha = 0.4;
+        }
+        
+        if (that.imgRotation) {
+            
         }
         
         ctx.drawImage(that.img,
@@ -373,11 +386,11 @@ function startMoving() {
     keylistener.start();
     gloop = new GameLoop();
     gloop.add(spaceDisplay);
-    spaceShips = [new SpaceshipPlayer("q", "d", document.getElementById("gameArea").height - 100, document.getElementById("spaceship1")),
-            new SpaceshipPlayer("k", "m", document.getElementById("gameArea").height - 75, document.getElementById("spaceship2")),
-            new SpaceshipPlayer("ArrowLeft", "ArrowRight", document.getElementById("gameArea").height - 50, document.getElementById("spaceship3"))];
+    spaceShips = [new SpaceshipPlayer("q", "d", 1, document.getElementById("spaceship1")),
+            new SpaceshipPlayer("k", "m", 2, document.getElementById("spaceship2")),
+            new SpaceshipPlayer("ArrowLeft", "ArrowRight", 3, document.getElementById("spaceship3"))];
     for (var i = 0; i < spaceShips.length; i++) {
-        gloop.add(spaceShips[i].iterate);
+        gloop.add(spaceShips[i]);
     }
     for (var i = 1; i <= 7; i++) {
         gloop.add(new SpaceshipEnemy(50, 30, document.getElementById("enemy"+i), -100, 50*i));

@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Jeu de tir coopératif</title>
 <script type="text/javascript" src="keys.js"></script>
 <script type="text/javascript" src="loop.js"></script>
@@ -10,7 +11,7 @@ function whenEveryThingLoaded() {
     document.getElementById('loading').innerHTML = "Loaded ! Prepare to fight !";
     
     setTimeout(function() {
-        document.getElementById('gameArea').style.display='block';
+        document.getElementById('gameDiv').style.display='block';
         document.getElementById('loading').style.display='none';
         startMoving()
     }, 1000);
@@ -25,15 +26,18 @@ function whenEveryThingLoaded() {
 <div id="loading">
 Loading...
 </div>
-<canvas id="gameArea" width="400" height="800" style="background-color:#000; display:none;">
+<div id="gameDiv" style="display:none;">
+<canvas id="gameArea" width="400" height="800" style="background-color:#000;">
 
 </canvas>
-
+<br/>
+<input type="button" value="Full screen" onclick="document.getElementById('gameArea').webkitRequestFullscreen()"/>
+</div>
 
 <div style="display:none;">
 <!-- images to load -->
 <!-- player spaceships -->
-<img src="http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png" id="spaceship1" style="visibility:hidden;"></img>
+<img src="http://findicons.com/files/icons/1035/human_o2/128/alienblaster.png" id="spaceship1" style="visibility:hidden;" rotate="180"></img>
 <img src="http://4.bp.blogspot.com/-etyNTo8hpIE/Uf8BfJYeymI/AAAAAAAAA5Q/9emQpKVj1fo/s1600/fighter-01.png" id="spaceship2" style="visibility:hidden;"></img>
 <img src="http://3.bp.blogspot.com/-ddkcnhuU07g/Vllq4DNohkI/AAAAAAAACHs/ZyekdBvAgnk/s1600/mship1.png" id="spaceship3" style="visibility:hidden;"></img>
 
