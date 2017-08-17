@@ -111,7 +111,7 @@ function spaceDisplay(timeInterval) {
             var dx = x2 - x1;
             var dy = y2 - y1;
             var distance = Math.sqrt(dx*dx + dy*dy);
-            if (distance < enemy.size + ally.size) {
+            if (distance*2 < enemy.size + ally.size) {
                 // intersection
                 ally.PV -= enemy.damage;
                 enemy.PV -= ally.damage;
@@ -239,7 +239,8 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
     
     this.damage = 20;
     
-    var sizeY = that.size * that.img.height / that.img.width;
+    var imgSize = 70;
+    var sizeY = imgSize * that.img.height / that.img.width;
     
     var destinationX = Math.random() * canvas.width;
     
@@ -273,9 +274,9 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
         var ctx = canvas.getContext("2d");
         ctx.drawImage(that.img,
             // position
-            that.pos.x - that.size/2, that.pos.y - sizeY/2,
+            that.pos.x - imgSize/2, that.pos.y - sizeY/2,
             // size : shrink it to 50px
-            that.size, sizeY);
+            imgSize, sizeY);
         
         // shoot ?
         that.timeBeforeNextShoot -= timeInterval;
@@ -306,13 +307,14 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
 
     // the spaceship image
     this.img = img;
-    this.imgRotation = parseInt(img.getAttribute("rotate") || "0");
+    var imgRotation = parseInt(img.getAttribute("rotate") || "0") * Math.PI/180;
+    var imgSize = 70; // because transparency
+    var imgHeight = imgSize * img.height / img.width;
 
     
     // attributes for intersection
     this.enemy = false;
     this.mayHurt = true;
-    this.offsetCenterY = that.size * that.img.height / that.img.width / 2;
     this.damage = 10000;
 
     
@@ -350,15 +352,25 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
             ctx.globalAlpha = 0.4;
         }
         
-        if (that.imgRotation) {
-            
-        }
+        var x = that.pos.x;
+        var y = that.pos.y;
+        
+        if (imgRotation) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(imgRotation);
+            ctx.drawImage(img, -imgSize / 2, -imgHeight / 2, imgSize, imgHeight);
+            //ctx.drawImage(img, 0, 0, imgSize, imgHeight);
+            ctx.restore();
+            //ctx.rotate(-imgRotation);
+            //ctx.translate(-x, -y);
+        } else 
         
         ctx.drawImage(that.img,
             // position
-            that.pos.x - that.size/2, that.pos.y,
+            that.pos.x - imgSize/2, that.pos.y - imgHeight/2,
             // size : shrink it to 50px
-            that.size, that.size * that.img.height / that.img.width);
+            imgSize, imgHeight);
         
         if (that.PV<=0) {
             ctx.restore();
@@ -392,7 +404,7 @@ function startMoving() {
     for (var i = 0; i < spaceShips.length; i++) {
         gloop.add(spaceShips[i]);
     }
-    for (var i = 1; i <= 7; i++) {
+    for (var i = 1; i <= 4; i++) {
         gloop.add(new SpaceshipEnemy(50, 30, document.getElementById("enemy"+i), -100, 50*i));
     }
     

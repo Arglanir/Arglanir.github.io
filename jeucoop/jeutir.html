@@ -8,13 +8,13 @@
 <script type="text/javascript" src="jeutir.js"></script>
 <script type="text/javascript">
 function whenEveryThingLoaded() {
-    document.getElementById('loading').innerHTML = "Loaded ! Prepare to fight !";
+    document.getElementById('loading').innerHTML = "Loaded! Prepare to fight!";
     
     setTimeout(function() {
         document.getElementById('gameDiv').style.display='block';
-        document.getElementById('loading').style.display='none';
+        document.getElementById('beforeGame').style.display='none';
         startMoving()
-    }, 1000);
+    }, 1500);
 
 }
 
@@ -23,8 +23,12 @@ function whenEveryThingLoaded() {
 
 </head>
 <body id="body" onload="whenEveryThingLoaded()">
-<div id="loading">
-Loading...
+<div id="beforeGame">
+<div id="loading">Loading...</div>
+<br/>Player 1: Q - D
+<br/>Player 2: K - M
+<br/>Player 3: &lt; - &gt;
+
 </div>
 <div id="gameDiv" style="display:none;">
 <canvas id="gameArea" width="400" height="800" style="background-color:#000;">
