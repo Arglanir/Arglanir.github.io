@@ -5,6 +5,10 @@ Functions take one argument: the time since last run (in ms)
 They return 
 */
 
+// request animation frame instead of timeout
+window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                              window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {setTimeout(callback, 1000/60);};
+
 function GameLoop(options) {
     options = options || {};
     var that = this;
@@ -50,12 +54,19 @@ function GameLoop(options) {
     // one iteration loop
     var oneIteration = function () {
         if (!that.running) return;
-        setTimeout(oneIteration, 1000/that.currentFPS);
+        window.requestAnimationFrame(oneIteration);
+        //setTimeout(oneIteration, 1000/that.currentFPS);
         
         // calculate the current loop interval
         var currentTime = Date.now();
         var currentLoopInterval = that.currentLoopInterval = currentTime - currentLoopLast;
         currentLoopLast = currentTime;
+        that.currentFPS = 1000/currentLoopInterval;
+        
+        if (currentLoopInterval > 1000) {
+            // after a pause
+            currentLoopInterval = 1;
+        }
         
         var todelete = [];
         var stoploop = false;
@@ -72,13 +83,6 @@ function GameLoop(options) {
               torun.splice(index, 1);
         }
         
-        // update the that.currentFPS
-        var expectedInterval = 1000/that.currentFPS;
-        if (expectedInterval >= currentLoopInterval-1) {
-            if (that.currentFPS < that.maxFPS) that.currentFPS += 1;
-        } else {
-            that.currentFPS -= 1;
-        }
         if (stoploop) {
             that.running = false;
         }

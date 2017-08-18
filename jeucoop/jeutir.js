@@ -115,6 +115,13 @@ function spaceDisplay(timeInterval) {
                 // intersection
                 ally.PV -= enemy.damage;
                 enemy.PV -= ally.damage;
+                
+                if (ally.hurtcallback) {
+                    ally.hurtcallback(enemy);
+                }
+                if (enemy.hurtcallback) {
+                    enemy.hurtcallback(ally);
+                }
             }
         }
     }
@@ -175,15 +182,12 @@ function Asteroid(x, y, img, speed, damage) {
     dy = dy / distance;
     
     this.pos = {x:x+dx*this.size, y:y+dy*this.size};
-    this.forEnemy = forEnemy;
+    this.forEnemy = false;
     
-    this.enemy = !forEnemy;
+    this.enemy = true;
     this.mayHurt = true;
     this.damage = damage;
-    if (isNaN(damage)) {
-        console.log("error!");
-    }
-    this.PV = 1;
+    this.PV = 1000;
     
     this.iterate = function (timeInterval) {
         if (that.PV<=0) return gloop.REMOVEME;
@@ -202,9 +206,53 @@ function Asteroid(x, y, img, speed, damage) {
             // position
             that.pos.x - that.size/2, that.pos.y - that.size/2,
             // size : shrink it to 50px
-            that.size, that.size * that.img.height / that.img.width);
+            that.size, that.size * img.height / img.width);
     }
     
+}
+
+var debugfirst = true;
+
+function Explosion(x, y) {
+    var that = this;
+    var canvas = document.getElementById("gameArea");
+    
+    this.rSpeed = 40;
+    
+    this.animationTotTime = 1000;
+    this.animationTime = 0;
+    
+    this.radius = this.minRadius = 20;
+    this.maxRadius = 40;
+    
+    this.colorCenter = "#fff";
+    this.colorMiddle = "#FF0";
+    this.colorEnd = "rgba(0,0,0,0.0)";
+    
+    this.iterate = function(timeInterval) {
+        if (that.animationTime > that.animationTotTime) {
+            return gloop.REMOVEME;
+        }
+        var ctx = canvas.getContext("2d");
+        var theta = that.animationTime/that.animationTotTime;
+        var blueColor = that.animationTime < that.animationTotTime/2 ? 255*(1-2*theta) : 0;
+        var opacity = that.animationTime < that.animationTotTime/2 ? 1 : (2-2*theta);
+        var color = "rgba("+Math.floor(255*opacity)+", "+Math.floor(255*opacity)+", "+Math.floor(blueColor)+", "+opacity+")";
+        that.radius = that.minRadius + theta * (that.maxRadius-that.minRadius);
+        
+        var grd=ctx.createRadialGradient(x,y,1,x,y,that.radius);
+        grd.addColorStop(0, color);
+        grd.addColorStop(0.8, color);
+        grd.addColorStop(1, "rgba(0, 0, 0, 0.0)");
+
+        ctx.fillStyle = grd;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, that.radius, 0, 2*Math.PI);
+        ctx.fill();
+        
+        that.animationTime += timeInterval;
+    }
 }
 
 
@@ -246,8 +294,9 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
     
     this.iterate = function (timeInterval) {
         if (that.PV<=0) {
-            console.log("I am dead!");
+            //console.log("I am dead!");
             score += that.PVmax;
+            gloop.add(new Explosion(that.pos.x, that.pos.y));
             gloop.add(new SpaceshipEnemy(50, damage*1.1, img, -100, destinationY));
             return gloop.REMOVEME; // TODO: add explosion
         }
@@ -308,7 +357,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     // the spaceship image
     this.img = img;
     var imgRotation = parseInt(img.getAttribute("rotate") || "0") * Math.PI/180;
-    var imgSize = 70; // because transparency
+    var imgSize = 70; // because opacity
     var imgHeight = imgSize * img.height / img.width;
 
     
@@ -319,7 +368,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
 
     
     // life points
-    this.PV = this.PVmax = 100;
+    this.PV = this.PVmax = 200;
     
     // time between shoots
     this.timeBetweenShoots = 750; // in ms
@@ -329,6 +378,9 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     // shoot power
     this.shootMode = 0;
     this.shootPV = 50;
+    
+    this.hurtAnimationTotTime = 1000;
+    this.hurtAnimationTime = 1000;
     
     
     this.iterate = function (timeInterval) {
@@ -348,6 +400,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
         // draw spaceship
         var ctx = canvas.getContext("2d");
         if (that.PV<=0) {
+            // dead... make it transparent
             ctx.save();
             ctx.globalAlpha = 0.4;
         }
@@ -364,18 +417,39 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
             ctx.restore();
             //ctx.rotate(-imgRotation);
             //ctx.translate(-x, -y);
-        } else 
-        
-        ctx.drawImage(that.img,
-            // position
-            that.pos.x - imgSize/2, that.pos.y - imgHeight/2,
-            // size : shrink it to 50px
-            imgSize, imgHeight);
+        } else {
+            ctx.drawImage(that.img,
+                // position
+                that.pos.x - imgSize/2, that.pos.y - imgHeight/2,
+                // size : shrink it to 50px
+                imgSize, imgHeight);
+        }
         
         if (that.PV<=0) {
             ctx.restore();
             return; // no more shooting
         }
+        
+        // hurt animation
+        if (that.hurtAnimationTime < that.hurtAnimationTotTime) {
+            // circle animation from color to black transparent
+            var theta = that.hurtAnimationTime / that.hurtAnimationTotTime;
+            var hitPercent = 1 - that.PV / that.PVmax;
+            var colorR = hitPercent < 0.5 ? 255*2*hitPercent : 255;
+            var colorG = 255*(1-hitPercent);
+            var colorB = 0;
+            var opacity = theta < 0.5 ? 1 : 2-2*theta;
+            var color = "rgba("+Math.floor(colorR*opacity)+", "+Math.floor(colorG*opacity)+", "+Math.floor(colorB*opacity)+", "+opacity+")";
+        
+            ctx.strokeStyle = color;
+        
+            ctx.beginPath();
+            ctx.arc(that.pos.x, that.pos.y, imgSize/2, 0, 2*Math.PI);
+            ctx.stroke();
+            
+            that.hurtAnimationTime += timeInterval;
+        }
+        
 
         // shoot ?
         that.timeBeforeNextShoot -= timeInterval;
@@ -384,6 +458,14 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
             var proj = new Projectile1(that.pos.x, that.pos.y, 0, -1, true, 700, that.shootPV);
             gloop.add(proj);
             that.timeBeforeNextShoot = that.timeBetweenShoots-200+Math.random()*400;
+        }
+    }
+    
+    this.hurtcallback = function(enemy) {
+        if (that.PV > 0) {
+            that.hurtAnimationTime = 0;
+        } else if (enemy.damage > -that.PV)  {// just hurt
+            gloop.add(new Explosion(that.pos.x, that.pos.y));
         }
     }
     
