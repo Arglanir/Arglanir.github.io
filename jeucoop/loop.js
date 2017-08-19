@@ -9,6 +9,17 @@ They return
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                               window.webkitRequestAnimationFrame || window.msRequestAnimationFrame || function(callback) {setTimeout(callback, 1000/60);};
 
+function requestFullScreen(elem) {
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if (elem.mozRequestFullScreen) {
+      elem.mozRequestFullScreen();
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    }
+}
+                              
+                              
 function GameLoop(options) {
     options = options || {};
     var that = this;
