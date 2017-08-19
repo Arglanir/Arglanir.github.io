@@ -255,6 +255,30 @@ function Explosion(x, y) {
     }
 }
 
+function Bonus(type, x, y) {
+    var that = this;
+    var canvas = document.getElementById("gameArea");
+    this.enemy = true;
+    
+    this.damage = 0;
+    this.mayHurt = true;
+    this.PV = 1;
+    
+    this.pos = {x:x, y:y};
+    this.speed = 200;
+    
+    this.iterate = function(timeInterval) {
+        
+        
+    };
+    
+    this.hurtcallback = function(ally) {
+        
+        
+    }
+    
+    
+}
 
 function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
     var that = this;
@@ -379,8 +403,14 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     this.shootMode = 0;
     this.shootPV = 50;
     
+    // animation when hurt
     this.hurtAnimationTotTime = 1000;
     this.hurtAnimationTime = 1000;
+    
+    // activation of shield
+    this.shieldActivatedMaxTime = 3000;
+    this.shieldActivatedRemainingTime = this.shieldActivatedMaxTime;
+    this.shieldRecharge = this.shieldActivatedMaxTime/10; // milliseconds per second
     
     
     this.iterate = function (timeInterval) {
@@ -430,8 +460,33 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
             return; // no more shooting
         }
         
+        // shield animation
+        var shieldPressed = keylistener.isPressed(keyLeft) && keylistener.isPressed(keyRight);
+        var shieldActivated = shieldPressed && that.shieldActivatedRemainingTime > 0;
+        if (!shieldPressed) {
+            that.shieldActivatedRemainingTime += that.shieldRecharge*timeInterval/1000;
+            that.shieldActivatedRemainingTime = that.shieldActivatedRemainingTime > that.shieldActivatedMaxTime ? that.shieldActivatedMaxTime : that.shieldActivatedRemainingTime;
+        }
+        if (shieldActivated) {
+            // shield activated
+            that.shieldActivatedRemainingTime -= timeInterval;
+            
+            // circle animation from color to black transparent
+            var theta = that.shieldActivatedRemainingTime / that.shieldActivatedMaxTime;
+            var colorR = 255*(theta < 0.5 ? 0 : theta-0.5);
+            var colorG = colorR;
+            var colorB = 255*(theta > 0.5 ? 1: theta*2);
+            var opacity = theta > 0.5 ? 1: 0.5+theta;
+            var color = "rgba("+Math.floor(colorR*opacity)+", "+Math.floor(colorG*opacity)+", "+Math.floor(colorB*opacity)+", "+opacity+")";
+        
+            ctx.strokeStyle = color;
+        
+            ctx.beginPath();
+            ctx.arc(that.pos.x, that.pos.y, imgSize/2, 0, 2*Math.PI);
+            ctx.stroke();
+        }
         // hurt animation
-        if (that.hurtAnimationTime < that.hurtAnimationTotTime) {
+        else if (that.hurtAnimationTime < that.hurtAnimationTotTime) {
             // circle animation from color to black transparent
             var theta = that.hurtAnimationTime / that.hurtAnimationTotTime;
             var hitPercent = 1 - that.PV / that.PVmax;
@@ -454,7 +509,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
         // shoot ?
         that.timeBeforeNextShoot -= timeInterval;
         
-        if (that.timeBeforeNextShoot < 0) {
+        if (that.timeBeforeNextShoot < 0 && !shieldPressed) {
             var proj = new Projectile1(that.pos.x, that.pos.y, 0, -1, true, 700, that.shootPV);
             gloop.add(proj);
             that.timeBeforeNextShoot = that.timeBetweenShoots-200+Math.random()*400;
@@ -462,9 +517,19 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
     }
     
     this.hurtcallback = function(enemy) {
+        if (enemy.bonus) { // it's a bonus, all is well
+            return;
+        }
+        if (keylistener.isPressed(keyLeft) && keylistener.isPressed(keyRight) && that.shieldActivatedRemainingTime > 0) {
+            // shield pressed !
+            that.PV += enemy.damage;
+            return;
+        }
         if (that.PV > 0) {
             that.hurtAnimationTime = 0;
-        } else if (enemy.damage > -that.PV)  {// just hurt
+            return;
+        }
+        if (enemy.damage > -that.PV)  {// just hurt
             gloop.add(new Explosion(that.pos.x, that.pos.y));
         }
     }
@@ -482,7 +547,9 @@ function startMoving() {
     gloop.add(spaceDisplay);
     spaceShips = [new SpaceshipPlayer("q", "d", 1, document.getElementById("spaceship1")),
             new SpaceshipPlayer("k", "m", 2, document.getElementById("spaceship2")),
-            new SpaceshipPlayer("ArrowLeft", "ArrowRight", 3, document.getElementById("spaceship3"))];
+            new SpaceshipPlayer("ArrowLeft", "ArrowRight", 3, document.getElementById("spaceship3")),
+            new SpaceshipPlayer("4", "6", 4, document.getElementById("spaceship4")),
+            ];
     for (var i = 0; i < spaceShips.length; i++) {
         gloop.add(spaceShips[i]);
     }
