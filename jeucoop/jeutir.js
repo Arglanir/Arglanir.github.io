@@ -86,6 +86,7 @@ function spaceDisplay(timeInterval) {
     
     ctx.font = "30px Arial";
     ctx.fillStyle = "white";
+    ctx.textAlign = "left";
     ctx.fillText(Math.floor(score),10,30);
     
     
@@ -255,7 +256,7 @@ function Explosion(x, y) {
     }
 }
 
-function Bonus(type, x, y) {
+function Bonus(x, y, type) {
     var that = this;
     var canvas = document.getElementById("gameArea");
     this.enemy = true;
@@ -263,18 +264,104 @@ function Bonus(type, x, y) {
     this.damage = 0;
     this.mayHurt = true;
     this.PV = 1;
+    this.size = 30;
     
     this.pos = {x:x, y:y};
-    this.speed = 200;
+    this.speed = 50;
+    
+    var types = ["healthIncr", "healthFill", "shootingIncr", "damageIncr", "shieldIncr", "speedIncr"];
+    
+    if (typeof type == "undefined") {
+        type = types[Math.floor(Math.random()*types.length)];
+    }
     
     this.iterate = function(timeInterval) {
+        if (that.PV <= 0) {
+            return gloop.REMOVEME;
+        }
+        var y = that.pos.y += timeInterval*that.speed / 1000;
+        var x = that.pos.x;
+        var ctx = canvas.getContext("2d");
         
+        var grd=ctx.createRadialGradient(x,y,1,x,y,that.size/2);
+        grd.addColorStop(0, "white");
+        grd.addColorStop(0.7, "white");
+        grd.addColorStop(1, "rgba(0, 0, 0, 0.0)");
         
+        ctx.fillStyle = grd;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, that.size/2, 0, 2*Math.PI);
+        ctx.fill();
+        
+        ctx.font = '20px Calibri';
+        ctx.textAlign = 'center';
+        
+        y += 5; // in order to allign text vertically
+        
+        switch(type) {
+            case "healthIncr":
+                ctx.fillStyle = 'blue';
+                ctx.fillText('+', x, y);
+                break;
+            case "healthFill":
+                ctx.fillStyle = 'green';
+                ctx.fillText('+', x, y);
+                break;
+            case "shootingIncr":
+                ctx.fillStyle = 'orange';
+                ctx.fillText('!', x, y);
+                break;
+            case "damageIncr":
+                y += 4; // in order to allign text vertically
+                ctx.fillStyle = 'red';
+                ctx.fillText('*', x, y);
+                break;
+            case "speedIncr":
+                ctx.fillStyle = 'blue';
+                ctx.fillText('>>', x, y);
+                break;
+            case "shieldIncr":
+                ctx.fillStyle = 'blue';
+                y += 1;
+                ctx.fillText('O', x, y);
+                break;
+        }
+        
+
     };
     
     this.hurtcallback = function(ally) {
-        
-        
+        if (!ally.timeBetweenShoots) {
+            that.PV += ally.damage;
+            // not a player
+            return;
+        }
+        if (that.PV <= 0) {
+            return;// should be deleted
+        }
+        that.PV = 0;
+        // otherwise : a spaceship
+        switch(type) {
+            case "healthIncr":
+                ally.PV = ally.PVmax = ally.PVmax*1.2;
+                break;
+            case "healthFill":
+                ally.PV = ally.PVmax;
+                break;
+            case "shootingIncr":
+                ally.timeBetweenShoots *= 0.9;
+                break;
+            case "damageIncr":
+                ally.damage *= 1.2;
+                break;
+            case "speedIncr":
+                ally.speed *= 1.2;
+                break;
+            case "shieldIncr":
+                ally.shieldActivatedMaxTime = ally.shieldActivatedRemainingTime = ally.shieldActivatedRemainingTime*1.2;
+                break;
+        }
     }
     
     
@@ -320,8 +407,16 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
         if (that.PV<=0) {
             //console.log("I am dead!");
             score += that.PVmax;
+            // maybe add bonus ?
+            if (Math.random() < 0.5) {
+                gloop.add(new Bonus(that.pos.x, that.pos.y));
+            }
+            // add explosion
             gloop.add(new Explosion(that.pos.x, that.pos.y));
+            // add new enemy (for now)
             gloop.add(new SpaceshipEnemy(50, damage*1.1, img, -100, destinationY));
+            
+            // delete me
             return gloop.REMOVEME; // TODO: add explosion
         }
 
@@ -512,7 +607,7 @@ function SpaceshipPlayer(keyLeft, keyRight, ypos, img) {
         if (that.timeBeforeNextShoot < 0 && !shieldPressed) {
             var proj = new Projectile1(that.pos.x, that.pos.y, 0, -1, true, 700, that.shootPV);
             gloop.add(proj);
-            that.timeBeforeNextShoot = that.timeBetweenShoots-200+Math.random()*400;
+            that.timeBeforeNextShoot = that.timeBetweenShoots*(0.75+0.5*Math.random());
         }
     }
     
