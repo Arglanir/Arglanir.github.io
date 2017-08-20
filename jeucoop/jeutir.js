@@ -132,7 +132,7 @@ function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
     var that = this;
     var canvas = document.getElementById("gameArea");
     
-    this.size = 2;
+    this.size = 6;
     this.color = forEnemy ? "#ffd" : "#F66";
     
     var distance = Math.sqrt(dx*dx+dy*dy);
@@ -162,7 +162,9 @@ function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
         var ctx = canvas.getContext("2d");
         ctx.fillStyle = that.color;
         
-        ctx.fillRect(that.pos.x-that.size, that.pos.y-that.size, that.size+1,  that.size+1);
+        ctx.beginPath();
+        ctx.arc(that.pos.x, that.pos.y, that.size/2, 0, 2*Math.PI);
+        ctx.fill();
         
     }
     
@@ -332,15 +334,15 @@ function Bonus(x, y, type) {
     };
     
     this.hurtcallback = function(ally) {
+        that.PV += ally.damage; // never loose HP except when used.
         if (!ally.timeBetweenShoots) {
-            that.PV += ally.damage;
             // not a player
             return;
         }
         if (that.PV <= 0) {
-            return;// should be deleted
+            return;// should already be deleted
         }
-        that.PV = 0;
+        that.PV = 0; // may not be used again
         // otherwise : a spaceship
         switch(type) {
             case "healthIncr":

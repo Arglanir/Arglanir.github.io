@@ -7,13 +7,30 @@
 <script type="text/javascript" src="loop.js"></script>
 <script type="text/javascript" src="jeutir.js"></script>
 <script type="text/javascript">
+function startGameKeyBoard() {
+    document.getElementById('gameDiv').style.display='block';
+    document.getElementById('beforeGame').style.display='none';
+    document.getElementById('gameArea').style.transform=document.getElementById('gameArea').style.webkitTransform=document.getElementById('gameArea').style.msTransform='rotate(90deg)';
+    document.getElementById('gameArea').style.position="absolute";
+    document.getElementById('gameArea').style.left="200px";
+    document.getElementById('gameArea').style.top="-200px";
+    startMoving()
+}
+
+function startGameTouch() {
+    document.getElementById('gameDiv').style.display='block';
+    document.getElementById('beforeGame').style.display='none';
+    requestFullScreen(document.getElementById('gameArea'));
+    startMoving()
+}
+
 function whenEveryThingLoaded() {
-    document.getElementById('loading').innerHTML = "Loaded! Prepare to fight!";
+    document.getElementById('loading').innerHTML = "Loaded! Prepare to fight!<br/>"+
+    "<input type=\"button\" value=\"Launch!\" onclick=\"startGameKeyBoard()\"/><br/>" +
+    "<input type=\"button\" value=\"Launch full screen!\" onclick=\"startGameTouch()\"/>";
     
     setTimeout(function() {
-        document.getElementById('gameDiv').style.display='block';
-        document.getElementById('beforeGame').style.display='none';
-        startMoving()
+        
     }, 1500);
 
 }
