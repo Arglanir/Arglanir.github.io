@@ -44,12 +44,14 @@ function GameLoop(options) {
         torun.splice(index,1);
     }
     
+    this.hud = false;
+    
     // getter for the number of objects in loop
     this.nbObjects = function() {
         return torun.length;
     }
 
-    // running a function on each element (probably used in order to see if there is an intersection
+    // running a function on each element (probably used in order to see if there is an intersection)
     this.forEach = function(func) {
         for (var i = 0; i < torun.length; i++) {
             func(torun[i]);
@@ -92,6 +94,12 @@ function GameLoop(options) {
         while (todelete.length) {
               var index = todelete.pop();
               torun.splice(index, 1);
+        }
+        
+        // run hud at the end
+        if (that.hud) {
+            var returned = (that.hud.iterate ? that.hud.iterate : that.hud)(currentLoopInterval);
+            if (returned == that.STOPLOOP) stoploop = true;
         }
         
         if (stoploop) {
