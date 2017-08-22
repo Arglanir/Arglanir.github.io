@@ -44,6 +44,8 @@ function GameLoop(options) {
         torun.splice(index,1);
     }
     
+    this.game = false;
+    
     this.hud = false;
     
     // getter for the number of objects in loop
@@ -79,6 +81,12 @@ function GameLoop(options) {
         if (currentLoopInterval > 1000) {
             // after a pause
             currentLoopInterval = 1;
+        }
+
+        // run game at start
+        if (that.game) {
+            var returned = (that.game.iterate ? that.game.iterate : that.game)(currentLoopInterval);
+            if (returned == that.STOPLOOP) stoploop = true;
         }
         
         var todelete = [];

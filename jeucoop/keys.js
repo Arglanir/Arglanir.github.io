@@ -14,6 +14,10 @@ function KeyListener(targetElement) {
         e = e || event;
         keyCodes[e.keyCode] = e.type == 'keydown';
         keyNames[e.key] = e.type == 'keydown';
+        
+        if (that.when[e.key]) {
+            that.when[e.key](e.key);
+        }
     }
     // start to listen
     this.start = function() {
@@ -25,6 +29,9 @@ function KeyListener(targetElement) {
         targetElement.removeEventListener("keydown", that.listener, false);
         targetElement.removeEventListener("keyup", that.listener, false);
     }
+    
+    this.when = {};
+    
     // reset (all keys down
     this.reset = function() {
         for (var k in  keyCodes) {

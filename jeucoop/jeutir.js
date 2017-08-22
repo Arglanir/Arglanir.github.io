@@ -2,131 +2,207 @@
 Main library of jeutir.html
 */
 
-var score = 0;
-
-function spaceDisplay(timeInterval) {
-    var timeInterval = timeInterval || 0;
+var SpaceBackground = function() {
+    var that = this;
+    this.score = 0;
+    
     var canvas = document.getElementById("gameArea");
-    if (!spaceDisplay.stars) {
-        // initialization
-        var nbStars = 30;
-        spaceDisplay.speed = 10; // pixels per second
-        var stars = spaceDisplay.stars = [];
-        var colors = spaceDisplay.colors = ["#fff", "#faa", "#ffa", "#fca", "#aaf", "#aff"];
-        for (var i = 0; i < nbStars; i++) {
-            stars.push({x:Math.random()*canvas.width, y : Math.random()*canvas.height, size : Math.random()*10+1, color: colors[Math.floor(Math.random()*colors.length)]});
+    
+    this.spaceShips = [];
+    this.enemyShips = [];
+    
+    // initialization of stars
+    var nbStars = 30;
+    this.speed = 10; // pixels per second
+    var stars = this.stars = [];
+    var colors = this.colors = ["#fff", "#faa", "#ffa", "#fca", "#aaf", "#aff"];
+    for (var i = 0; i < nbStars; i++) {
+        stars.push({x:Math.random()*canvas.width, y : Math.random()*canvas.height, size : Math.random()*10+1, color: colors[Math.floor(Math.random()*colors.length)]});
+    }
+    // initialization of decor
+    this.decors = new Array();
+    for (var i = 1; i <= 6; i++) {
+        var element = document.getElementById("decor"+i);
+        if (element) this.decors.push(element);
+    }
+    this.decor = {img: this.decors[Math.floor(Math.random()*this.decors.length)],
+                                    x: Math.random()*(canvas.width+50)-50,
+                                    y: Math.random()*(canvas.height-300)+100,
+                                    size: Math.random()*50+30,
+                                    speed: Math.random()*10+15};
+    
+    this.iterate = function(timeInterval) {
+        // update each star
+        var stars = that.stars;
+        var todelete = [];
+        for (var i = 0; i < stars.length; i++) {
+            stars[i].y += that.speed*timeInterval/1000;
+            if (stars[i].y > canvas.height+10) {
+                todelete.push(i);
+            }
         }
-        spaceDisplay.decors = new Array();
-        for (var i = 1; i <= 6; i++) {
-            var element = document.getElementById("decor"+i);
-            if (element) spaceDisplay.decors.push(element);
+        // remove off-scene stars
+        while(todelete.length) {
+            var index = todelete.pop();
+            stars.splice(index, 1);
+            stars.push({x:Math.random()*canvas.width, y : -10-Math.random()*100, size : Math.random()*10+1, color: that.colors[Math.floor(Math.random()*that.colors.length)]});
         }
-        spaceDisplay.decor = {img: spaceDisplay.decors[Math.floor(Math.random()*spaceDisplay.decors.length)],
-                                        x: Math.random()*(canvas.width+50)-50,
-                                        y: Math.random()*(canvas.height-300)+100,
-                                        size: Math.random()*50+30,
-                                        speed: Math.random()*10+15};
         
-    }
-    // update each star
-    var stars = spaceDisplay.stars;
-    var todelete = [];
-    for (var i = 0; i < stars.length; i++) {
-        stars[i].y += spaceDisplay.speed*timeInterval/1000;
-        if (stars[i].y > canvas.height+10) {
-            todelete.push(i);
+        // update decor
+        that.decor.y += that.decor.speed*timeInterval/1000;
+        if (that.decor.y > canvas.height) {
+            // new one
+            that.decor = {img: that.decors[Math.floor(Math.random()*that.decors.length)],
+                                            x: Math.random()*(canvas.width+50)-50,
+                                            y: -80,
+                                            size: Math.random()*50+30,
+                                            speed: Math.random()*10+15};
         }
-    }
-    // remove off-scene stars
-    while(todelete.length) {
-        var index = todelete.pop();
-        stars.splice(index, 1);
-        stars.push({x:Math.random()*canvas.width, y : -10-Math.random()*100, size : Math.random()*10+1, color: spaceDisplay.colors[Math.floor(Math.random()*spaceDisplay.colors.length)]});
-    }
-    
-    // update decor
-    spaceDisplay.decor.y += spaceDisplay.decor.speed*timeInterval/1000;
-    if (spaceDisplay.decor.y > canvas.height) {
-        // new one
-        spaceDisplay.decor = {img: spaceDisplay.decors[Math.floor(Math.random()*spaceDisplay.decors.length)],
-                                        x: Math.random()*(canvas.width+50)-50,
-                                        y: -80,
-                                        size: Math.random()*50+30,
-                                        speed: Math.random()*10+15};
-    }
-    
-    // draw them...
-    var ctx = canvas.getContext("2d");
-    // reset area
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // display each star
-    for (var i = 0; i < stars.length; i++) {
-        var star = stars[i];
         
-        var grd=ctx.createRadialGradient(star.x,star.y,1,star.x,star.y,star.size*2);
-        grd.addColorStop(0,star.color);
-        grd.addColorStop(1,"rgba(0, 0, 0, 0.0)");
-        //console.log("star at" + star.x+", "+star.y)
-        ctx.strokeStyle = grd;//star.color;
-        ctx.beginPath();
-        ctx.moveTo(star.x-star.size, star.y);
-        ctx.lineTo(star.x+star.size, star.y);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(star.x, star.y-star.size);
-        ctx.lineTo(star.x, star.y+star.size);
-        ctx.stroke();
-    }
-    // display decor
-    ctx.drawImage(spaceDisplay.decor.img,
-        // position
-        spaceDisplay.decor.x, spaceDisplay.decor.y,
-        // size : shrink it to 50px
-        spaceDisplay.decor.size, spaceDisplay.decor.size * spaceDisplay.decor.img.height / spaceDisplay.decor.img.width);
-    
-    ctx.font = "30px Arial";
-    ctx.fillStyle = "white";
-    ctx.textAlign = "left";
-    ctx.fillText(Math.floor(score),10,30);
-    
-    
-    // run intersections
-    var listEnemies = [];
-    var listAllies = [];
-    gloop.forEach(function(element) {
-        if (!element.mayHurt) return;
-        (element.enemy ? listEnemies : listAllies).push(element);
-    });
-    // TODO: optimize by grouping by y
-    for (var ie in listEnemies) {
-        for (var ia in listAllies) {
-            var enemy = listEnemies[ie];
-            var ally = listAllies[ia];
+        // draw them...
+        var ctx = canvas.getContext("2d");
+        // reset area
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // display each star
+        for (var i = 0; i < stars.length; i++) {
+            var star = stars[i];
             
-            var x1 = enemy.pos.x;
-            var y1 = enemy.pos.y;
-            if (enemy.offsetCenterY) y1 += enemy.offsetCenterY;
-            var x2 = ally.pos.x;
-            var y2 = ally.pos.y;
-            if (ally.offsetCenterY) y2 += ally.offsetCenterY;
-            var dx = x2 - x1;
-            var dy = y2 - y1;
-            var distance = Math.sqrt(dx*dx + dy*dy);
-            if (distance*2 < enemy.size + ally.size) {
-                // intersection
-                ally.PV -= enemy.damage;
-                enemy.PV -= ally.damage;
+            var grd=ctx.createRadialGradient(star.x,star.y,1,star.x,star.y,star.size*2);
+            grd.addColorStop(0,star.color);
+            grd.addColorStop(1,"rgba(0, 0, 0, 0.0)");
+            //console.log("star at" + star.x+", "+star.y)
+            ctx.strokeStyle = grd;//star.color;
+            ctx.beginPath();
+            ctx.moveTo(star.x-star.size, star.y);
+            ctx.lineTo(star.x+star.size, star.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(star.x, star.y-star.size);
+            ctx.lineTo(star.x, star.y+star.size);
+            ctx.stroke();
+        }
+        // display decor
+        ctx.drawImage(that.decor.img,
+            // position
+            that.decor.x, that.decor.y,
+            // size : shrink it to 50px
+            that.decor.size, that.decor.size * that.decor.img.height / that.decor.img.width);
+        
+        that.interections();
+    }
+    
+    this.interections = function() {
+        // run intersections
+        var listEnemies = [];
+        var listAllies = [];
+        gloop.forEach(function(element) {
+            if (!element.mayHurt) return;
+            (element.enemy ? listEnemies : listAllies).push(element);
+        });
+        // TODO: optimize by grouping by y
+        for (var ie in listEnemies) {
+            for (var ia in listAllies) {
+                var enemy = listEnemies[ie];
+                var ally = listAllies[ia];
                 
-                if (ally.hurtcallback) {
-                    ally.hurtcallback(enemy);
-                }
-                if (enemy.hurtcallback) {
-                    enemy.hurtcallback(ally);
+                var x1 = enemy.pos.x;
+                var y1 = enemy.pos.y;
+                if (enemy.offsetCenterY) y1 += enemy.offsetCenterY;
+                var x2 = ally.pos.x;
+                var y2 = ally.pos.y;
+                if (ally.offsetCenterY) y2 += ally.offsetCenterY;
+                var dx = x2 - x1;
+                var dy = y2 - y1;
+                var distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance*2 < enemy.size + ally.size) {
+                    // intersection
+                    ally.PV -= enemy.damage;
+                    enemy.PV -= ally.damage;
+                    
+                    if (ally.hurtcallback) {
+                        ally.hurtcallback(enemy);
+                    }
+                    if (enemy.hurtcallback) {
+                        enemy.hurtcallback(ally);
+                    }
                 }
             }
         }
     }
 }
+
+var GameHud = function() {
+    var that = this;
+    var canvas = document.getElementById("gameArea");
+    
+    var endOfGameIn = 0;
+
+    this.iterate = function (timeInterval) {
+        
+        // draw score
+        var ctx = canvas.getContext("2d");
+        ctx.font = "30px Arial";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "left";
+        ctx.fillText(Math.floor(gloop.game.score), 10, 30);
+        
+        // TODO: add buttons
+        
+        // keylistener.when.Enter = function pause() {
+                // pause
+                // keylistener.when.Enter = function restart() {
+                    // keylistener.when.Enter = pause;
+                    // gloop.start();
+                // };
+                // gloop.stop();
+            // }
+        
+        if (endOfGameIn > 0) {
+            console.log("End of game in "+endOfGameIn);
+            ctx.font = "40px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText("Lost!", canvas.width/2, canvas.height / 2 - 20);
+
+            keylistener.when.Enter = function() {
+                // restart
+                keylistener.when.Enter = false;
+                startMoving();
+            }
+            
+            if (endOfGameIn > Date.now()) {
+                console.log("End of game Now!");
+                return gloop.STOPLOOP;
+            }
+        } else {
+            // lost ?
+            var spaceShips = gloop.game.spaceShips;
+            var anyAlive = false;
+            for (var i = 0; i < spaceShips.length; i++) {
+                if (spaceShips[i].PV > 0) {
+                    anyAlive = true;
+                    break;
+                }
+            }
+            if (!anyAlive) {
+                console.log("All "+spaceShips.length+" spaceships are dead.");
+                // check if still life bonus
+                var bonusLife = false;
+                gloop.forEach(function(element) {
+                    if (typeof element.type == "string" && element.type.startsWith("health")) {
+                        bonusLife = true;
+                    }
+                });
+                if (!bonusLife) {
+                    console.log("And no life bonus.");
+                    endOfGameIn = Date.now() + 2000;
+                }
+            }
+        }
+    }
+    
+}
+
 
 function Projectile1(x, y, dx, dy, forEnemy, speed, damage) {
     var that = this;
@@ -277,6 +353,8 @@ function Bonus(x, y, type) {
         type = types[Math.floor(Math.random()*types.length)];
     }
     
+    this.type = type;
+    
     this.iterate = function(timeInterval) {
         if (that.PV <= 0) {
             return gloop.REMOVEME;
@@ -408,7 +486,7 @@ function SpaceshipEnemy(speedY, damage, img, origY, destinationY, PVmax) {
     this.iterate = function (timeInterval) {
         if (that.PV<=0) {
             //console.log("I am dead!");
-            score += that.PVmax;
+            gloop.game.score += that.PVmax;
             // maybe add bonus ?
             if (Math.random() < 0.5) {
                 gloop.add(new Bonus(that.pos.x, that.pos.y));
@@ -638,11 +716,14 @@ var gloop = false;
 var keylistener = false;
 var spaceShips = false;
 function startMoving() {
+    if (keylistener) keylistener.stop();
+    if (gloop) gloop.stop();
     keylistener = new KeyListener();
     keylistener.start();
     gloop = new GameLoop();
-    gloop.add(spaceDisplay);
-    spaceShips = [new SpaceshipPlayer("q", "d", 1, document.getElementById("spaceship1")),
+    gloop.game = new SpaceBackground();
+    gloop.hud = new GameHud();
+    spaceShips = gloop.game.spaceShips = [new SpaceshipPlayer("q", "d", 1, document.getElementById("spaceship1")),
             new SpaceshipPlayer("k", "m", 2, document.getElementById("spaceship2")),
             new SpaceshipPlayer("ArrowLeft", "ArrowRight", 3, document.getElementById("spaceship3")),
             new SpaceshipPlayer("4", "6", 4, document.getElementById("spaceship4")),
@@ -653,7 +734,5 @@ function startMoving() {
     for (var i = 1; i <= 4; i++) {
         gloop.add(new SpaceshipEnemy(50, 30, document.getElementById("enemy"+i), -100, 50*i));
     }
-    
-    
     gloop.start();
 }
