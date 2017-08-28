@@ -12,10 +12,10 @@ function KeyListener(targetElement) {
     // the listener function
     this.listener = function(e) {
         e = e || event;
-        keyCodes[e.keyCode] = e.type == 'keydown';
-        keyNames[e.key] = e.type == 'keydown';
+        var pressed = keyNames[e.key] = keyCodes[e.keyCode] = e.type == 'keydown';
         
-        if (that.when[e.key]) {
+        
+        if (pressed && that.when[e.key]) {
             that.when[e.key](e.key);
         }
     }

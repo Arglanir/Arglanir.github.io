@@ -136,6 +136,7 @@ var GameHud = function() {
     var canvas = document.getElementById("gameArea");
     
     var endOfGameIn = 0;
+    var endOfGameAnimationTotTime = 4000;
 
     this.iterate = function (timeInterval) {
         
@@ -148,42 +149,37 @@ var GameHud = function() {
         
         // TODO: add buttons
         
-        // keylistener.when.Enter = function pause() {
-                // pause
-                // keylistener.when.Enter = function restart() {
-                    // keylistener.when.Enter = pause;
-                    // gloop.start();
-                // };
-                // gloop.stop();
-            // }
+        keylistener.when.Enter = function pause() {
+            pause
+            keylistener.when.Enter = function restart() {
+                keylistener.when.Enter = pause;
+                gloop.start();
+            };
+            gloop.stop();
+        };
+        
+        document.getElementById('pressedKeys').innerHTML = keylistener.dumpNames();
+        
         
         if (endOfGameIn > 0) {
-            console.log("End of game in "+endOfGameIn);
+            endOfGameIn += timeInterval;
+            if (endOfGameIn > endOfGameAnimationTotTime) endOfGameIn = endOfGameAnimationTotTime;
+            // already end of game
             ctx.font = "40px Arial";
-            ctx.fillStyle = "white";
+            var opacity = endOfGameIn/endOfGameAnimationTotTime;
+            ctx.fillStyle = "rgba(255,255,255,"+opacity+")";
             ctx.textAlign = "center";
-            ctx.fillText("Lost!", canvas.width/2, canvas.height / 2 - 20);
+            ctx.fillText("Lost!\nPress Enter.", canvas.width/2, canvas.height / 2 - 20);
 
-            keylistener.when.Enter = function() {
-                // restart
-                keylistener.when.Enter = false;
-                startMoving();
-            }
-            
-            if (endOfGameIn > Date.now()) {
-                console.log("End of game Now!");
-                return gloop.STOPLOOP;
-            }
         } else {
             // lost ?
-            var spaceShips = gloop.game.spaceShips;
             var anyAlive = false;
-            for (var i = 0; i < spaceShips.length; i++) {
-                if (spaceShips[i].PV > 0) {
+            gloop.forEach(function(elem) {
+                // may be spaceships but also projectiles
+                if (!anyAlive && elem.mayHurt && !elem.enemy && elem.PV > 0) {
                     anyAlive = true;
-                    break;
                 }
-            }
+            });
             if (!anyAlive) {
                 console.log("All "+spaceShips.length+" spaceships are dead.");
                 // check if still life bonus
@@ -195,7 +191,15 @@ var GameHud = function() {
                 });
                 if (!bonusLife) {
                     console.log("And no life bonus.");
-                    endOfGameIn = Date.now() + 2000;
+                    endOfGameIn = 1;
+
+                    
+                    keylistener.when.Enter = function() {
+                        // restart
+                        keylistener.when.Enter = false;
+                        startMoving();
+                    }
+            
                 }
             }
         }
