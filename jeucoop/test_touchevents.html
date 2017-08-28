@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Test touches</title>
+<script type="text/javascript" src="loop.js"></script>
+<script type="text/javascript" src="keys.js"></script>
+<script type="text/javascript" src="touch2keys.js"></script>
+</head>
+<body onload="useTest1(); useTest2();">
+Test 1:<br/>
+<div id="displayArea" style="width:400px; height:800px; background-color: yellow;">
+Loading...
+
+</div>
+<input type="button" value="Go fullscreen" onclick="requestFullScreen(document.getElementById('displayArea'))"/>
+<script type="text/javascript">
+function useTest1() {
+    var displayArea = document.getElementById("displayArea");
+    var touchEventListener = function(event) {
+        event.preventDefault();
+        var touches = event.changedTouches;
+        var allTouches = event.targetTouches;
+        var todisplay = "Offset: top: "+getOffsetTop(displayArea);
+        todisplay += ", left: "+getOffsetLeft(displayArea)+"<br/>";
+        todisplay += "Offset 2: "+JSON.stringify(getCoords(displayArea))+"<br/>";
+        todisplay += "All touches "+event.type+":<br/>";
+        for (var i in allTouches) {
+            var touch = allTouches[i];
+            todisplay += touch.identifier + "<small>";
+            todisplay += touch.screenX+", "+touch.screenY+" | ";
+            todisplay += touch.clientX+", "+touch.clientY+" | ";
+            todisplay += touch.pageX+", "+touch.pageY+"</br>";
+        }
+        
+        
+        displayArea.innerHTML = todisplay;
+    }
+    displayArea.addEventListener("touchstart", useTest1, false);
+    displayArea.addEventListener("touchend", useTest1, false);
+    displayArea.addEventListener("touchmove", useTest1, false);
+    
+    displayArea.innerHTML = "touch here !"
+}
+
+</script>
+
+<br/>
+<br/>
+
+Test 2:<br/>
+<div id="displayArea2" style="width:400px; height:800px; background-color: cyan;">
+Loading...
+
+</div>
+<input type="button" value="Go fullscreen" onclick="requestFullScreen(document.getElementById('displayArea2'))"/>
+<script type="text/javascript">
+function useTest2() {
+    var displayArea = document.getElementById("displayArea2");
+    
+    var keylistener = new KeyListener();
+    var gloop = new GameLoop();
+    
+    gloop.add(function(timeInterval) {
+        displayArea.innerHTML = "Keys:" + keylistener.dumpNames();
+    });
+    
+    var touch2key = new Touch2Key(displayArea);
+    
+    var lettres = "abcd", lettres2 = "1234";
+    for (var i in lettres) {
+        touch2key.addRectButtonKey(100*i, 600, 100*i+99, 700, lettres[i]);
+        touch2key.addCircleButtonKey(100*i+50, 750, 50, lettres2[i]);
+    }
+    
+    displayArea.innerHTML = "touch here !"
+}
+
+</script>
+</body>
+</html>
