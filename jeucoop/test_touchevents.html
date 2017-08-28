@@ -27,10 +27,10 @@ function useTest1() {
         todisplay += "All touches "+event.type+":<br/>";
         for (var i in allTouches) {
             var touch = allTouches[i];
-            todisplay += touch.identifier + "<small>";
+            todisplay += i+" "+touch.identifier + " <small>";
             todisplay += touch.screenX+", "+touch.screenY+" | ";
             todisplay += touch.clientX+", "+touch.clientY+" | ";
-            todisplay += touch.pageX+", "+touch.pageY+"</br>";
+            todisplay += touch.pageX+", "+touch.pageY+"</small></br>";
         }
         
         
