@@ -49,25 +49,39 @@ function useTest1() {
 <br/>
 
 Test 2:<br/>
-<div id="displayArea2" style="width:400px; height:800px; background-color: cyan;">
+<div id="displayArea2" style="width:400px; height:800px; background-color: cyan; position:relative;">
+<span id="displayArea2info">
 Loading...
-
+</span>
+<script type="text/javascript">
+var lettres = "abcd", lettres2 = "1234";
+for (var i in lettres) {
+    document.write('<div style="position: absolute; top: 610px; left: '+(100*i+10)+'px; width: 80px; height:80px; '+
+                            'border-style: outset; border-width: 5px;text-align:center;">'+
+                            '<span style="display:inline-block; vertical-align: middle;">'+lettres[i]+'</span></div>');
+    document.write('<div style="position: absolute; top: 710px; left: '+(100*i+10)+'px; width: 80px; height:80px; '+
+                            'border-radius: 40px; border-style: outset; border-width: 5px; text-align:center;">'+
+                            '<span style="display:inline-block; vertical-align: middle;">'+lettres2[i]+'</span></div>');
+}
+</script>
 </div>
 <input type="button" value="Go fullscreen" onclick="requestFullScreen(document.getElementById('displayArea2'))"/>
 <script type="text/javascript">
 function useTest2() {
     var displayArea = document.getElementById("displayArea2");
+    var displayAreaInfo = document.getElementById("displayArea2info");
     
     var keylistener = window.keylistener = new KeyListener();
     var gloop = window.gloop = new GameLoop();
     
     var counter = 0;
+    var touch2key = new Touch2Key(displayArea);
+
     gloop.add(function(timeInterval) {
         counter = (counter + 1) % 100;
-        displayArea.innerHTML = counter+"<br/>Keys:" + keylistener.dumpNames();
+        displayAreaInfo.innerHTML = counter+"<br/>Keys:" + keylistener.dumpNames() + "<br/>"+touch2key.dump();
     });
     
-    var touch2key = new Touch2Key(displayArea);
     
     var lettres = "abcd", lettres2 = "1234";
     for (var i in lettres) {
@@ -78,7 +92,7 @@ function useTest2() {
     gloop.start();
     keylistener.start();
     
-    displayArea.innerHTML = "touch here !"
+    displayAreaInfo.innerHTML = "touch here !"
 }
 
 </script>

@@ -118,6 +118,10 @@ function Touch2Key(canvas) {
         }
         touchid2key = {};
     }
+    
+    this.dump = function() {
+        return JSON.stringify(touchid2key);
+    }
 }
 
 // https://stackoverflow.com/questions/17165382/getting-the-correct-coordinates-of-a-canvas-touch-event
