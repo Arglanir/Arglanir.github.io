@@ -36,9 +36,9 @@ function useTest1() {
         
         displayArea.innerHTML = todisplay;
     }
-    displayArea.addEventListener("touchstart", useTest1, false);
-    displayArea.addEventListener("touchend", useTest1, false);
-    displayArea.addEventListener("touchmove", useTest1, false);
+    displayArea.addEventListener("touchstart", touchEventListener, false);
+    displayArea.addEventListener("touchend", touchEventListener, false);
+    displayArea.addEventListener("touchmove", touchEventListener, false);
     
     displayArea.innerHTML = "touch here !"
 }
