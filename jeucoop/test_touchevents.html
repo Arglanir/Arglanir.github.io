@@ -25,9 +25,9 @@ function useTest1() {
         todisplay += ", left: "+getOffsetLeft(displayArea)+"<br/>";
         todisplay += "Offset 2: "+JSON.stringify(getCoords(displayArea))+"<br/>";
         todisplay += "All touches "+event.type+":<br/>";
-        for (var i in allTouches) {
+        for (var i = 0; i < allTouches.length; i++) {
             var touch = allTouches[i];
-            todisplay += i+" "+touch.identifier + " <small>";
+            todisplay += touch.identifier + " <small>";
             todisplay += touch.screenX+", "+touch.screenY+" | ";
             todisplay += touch.clientX+", "+touch.clientY+" | ";
             todisplay += touch.pageX+", "+touch.pageY+"</small></br>";
@@ -58,11 +58,13 @@ Loading...
 function useTest2() {
     var displayArea = document.getElementById("displayArea2");
     
-    var keylistener = new KeyListener();
-    var gloop = new GameLoop();
+    var keylistener = window.keylistener = new KeyListener();
+    var gloop = window.gloop = new GameLoop();
     
+    var counter = 0;
     gloop.add(function(timeInterval) {
-        displayArea.innerHTML = "Keys:" + keylistener.dumpNames();
+        counter = (counter + 1) % 100;
+        displayArea.innerHTML = counter+"<br/>Keys:" + keylistener.dumpNames();
     });
     
     var touch2key = new Touch2Key(displayArea);
@@ -72,6 +74,9 @@ function useTest2() {
         touch2key.addRectButtonKey(100*i, 600, 100*i+99, 700, lettres[i]);
         touch2key.addCircleButtonKey(100*i+50, 750, 50, lettres2[i]);
     }
+    
+    gloop.start();
+    keylistener.start();
     
     displayArea.innerHTML = "touch here !"
 }
