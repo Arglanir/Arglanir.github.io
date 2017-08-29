@@ -76,6 +76,7 @@ function useTest2() {
     
     var counter = 0;
     var touch2key = new Touch2Key(displayArea);
+    touch2key.pleaseNotify(keylistener.simulate);
 
     gloop.add(function(timeInterval) {
         counter = (counter + 1) % 100;

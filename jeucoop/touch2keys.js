@@ -13,6 +13,7 @@ function Touch2Key(canvas) {
     
     // stores the touch id and the key associated
     var touchid2key = {};
+    var alsoNotify = false;
     
     // finding which key is pressed
     var findtouchkey = function(x, y) {
@@ -36,14 +37,17 @@ function Touch2Key(canvas) {
     }
     
     var sendkeyevent = function(type, key) { // type=keyup or keydown
-        var e = new KeyboardEvent(type, {bubbles : true, cancelable : true, key : key, char : key, shiftKey : false});
-        canvas.dispatchEvent(e);
+        if (alsoNotify) {
+            alsoNotify(type, key);
+        }
+        //var e = new KeyboardEvent(type, {bubbles : true, cancelable : true, key : key, char : key, shiftKey : false});
+        //canvas.dispatchEvent(e);
     }
     
     var listener = function(event) {
         // touch event
         event.preventDefault();
-        var touches = evt.changedTouches;
+        var touches = event.changedTouches;
         if (event.type == "touchstart") {
             // like a key press, find which key
             for (var i in touches) {
@@ -64,7 +68,8 @@ function Touch2Key(canvas) {
             for (var i in touches) {
                 var touch = touches[i];
                 var id = touch.identifier;
-                if (touchid2key[id]) {
+                var key = touchid2key[id];
+                if (key) {
                     // raise KeyUp event
                     sendkeyevent("keyup", key);
                     touchid2key[id] = false;
@@ -97,6 +102,10 @@ function Touch2Key(canvas) {
         // adding a circle
         zones.push({x:x, y:y, r:r, key:key});
     };
+    
+    this.pleaseNotify = function (callback) { // "keydown" or "keyup", "key"
+        alsoNotify = callback;
+    }
     
     // the following functions allow saving the state, restoring it, and reset it
     var stored = {};

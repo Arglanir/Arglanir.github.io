@@ -13,12 +13,14 @@ function KeyListener(targetElement) {
     this.listener = function(e) {
         e = e || event;
         var pressed = keyNames[e.key] = keyCodes[e.keyCode] = e.type == 'keydown';
-        
-        
         if (pressed && that.when[e.key]) {
             that.when[e.key](e.key);
         }
     }
+    this.simulate = function(keyevttype, key) {
+        that.listener({key:key, type: keyevttype, keyCode: false});
+    }
+    
     // start to listen
     this.start = function() {
         targetElement.addEventListener("keydown", that.listener, false);
