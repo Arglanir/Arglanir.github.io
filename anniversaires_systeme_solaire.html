@@ -1,0 +1,140 @@
+<!doctype html>
+<head>
+<meta charset="UTF-8">
+<title>Anniversaires dans le système solaire</title>
+<script type="text/javascript">
+/** Set the current date as default */
+function twoDigits(z) {
+    return z.toString().padStart(2, '0');
+}
+
+function defaultDate() {
+    var now = new Date();
+    document.datation.birth.value = [
+        now.getFullYear() - 40,
+        twoDigits(now.getMonth() + 1),
+        twoDigits(now.getDate())].join('-');
+    document.datation.today.value = [
+        now.getFullYear(),
+        twoDigits(now.getMonth() + 1),
+        twoDigits(now.getDate())].join('-');
+    if (window.location.toString().indexOf('?d=')>-1) {
+        document.datation.birth.value = window.location.toString().split('?d=')[1];
+    }
+}
+
+const EARTH_YEAR = 365.256363004;
+// in days
+const SOLAR_SYSTEM_DURATIONS = {
+    'années mercuriennes':87.9691,
+    'jours mercuriens':58.646,
+    'années terrestres':EARTH_YEAR,
+    'jours terrestres':1,
+    'années vénusiennes':224.701,
+    'jours vénusiens':116.75,
+    'années martiennes':686.980,
+    'années joviennes':11.862*EARTH_YEAR,
+    'années saturniennes':29.4571*EARTH_YEAR,
+    'années ceresiennes':4.60*EARTH_YEAR,
+    'année uranusienne':84.0205*EARTH_YEAR,
+    'jours lunaires':29.530589,
+    
+}
+
+Date.prototype.addDays=function(d){return new Date(this.valueOf()+864E5*d);};
+
+function dateIntputToObj(inputValue) {
+    var dateStr = inputValue;
+    var t = dateStr.split('-');
+    var date = new Date(parseInt(t[0]),parseInt(t[1])-1,parseInt(t[2]));
+    date.setHours(12);
+    return date;
+}
+
+/** Calculates the next anniversaries */
+function calc() {
+    // extract value
+    var date = dateIntputToObj(document.datation.birth.value);
+    console.log(date);
+    // update url
+    var lastUrl = window.location.toString();
+    var nextUrl = lastUrl.indexOf('?d=')>-1 ? lastUrl.replace(/\?d=.*/, '?d='+document.datation.birth.value) : lastUrl + "?d=" + document.datation.birth.value;
+    window.history.pushState({},"", nextUrl);
+    // get current age
+    var now = dateIntputToObj(document.datation.today.value);
+    var elapsedEarthDays = (now - date)/1000/3600/24 - 1;
+    var dates = []; // [future date, event] for sorting
+    var todisplay = "";
+    console.log("Age: " + elapsedEarthDays + " days");
+    // calculate for each type
+    for (const [type, duration] of Object.entries(SOLAR_SYSTEM_DURATIONS)) {
+        var currentAge = elapsedEarthDays/duration;
+        var nextAnnivAge = Math.ceil(currentAge);
+        var nextAnnivInDays = nextAnnivAge*duration;
+        var nextAnnivDate = date.addDays(nextAnnivInDays);
+        dates.push([nextAnnivDate.valueOf(), nextAnnivAge + " " + type + " le " + twoDigits(nextAnnivDate.getDate()) + "/" + twoDigits(nextAnnivDate.getMonth() + 1) + "/" + nextAnnivDate.getFullYear()]);
+        // multiples of 5
+        var multiple = 5;
+        if (nextAnnivAge < 5) {
+            continue;
+        } else if (nextAnnivAge <= 50) {
+            // keep 5
+        } else if (nextAnnivAge <= 100) {
+            multiple = 10;
+        } else if (nextAnnivAge <= 200) {
+            multiple = 20;
+        } else {
+            multiple = Math.ceil(nextAnnivAge / 100)*10;
+        }
+        var currentAgeBy5 = elapsedEarthDays/duration/multiple;
+        var nextAnnivAgeBy5 = Math.ceil(currentAgeBy5);
+        var nextAnniv5InDays = nextAnnivAgeBy5*duration*multiple;
+        if (Math.floor(Math.abs(nextAnniv5InDays-nextAnnivInDays)) == 0) {
+            continue;
+        }
+        var nextAnniv5Date = date.addDays(nextAnniv5InDays);
+        dates.push([nextAnniv5Date, "<b>" + nextAnnivAgeBy5*multiple + " " + type + " le " + twoDigits(nextAnniv5Date.getDate()) + "/" + twoDigits(nextAnniv5Date.getMonth() + 1) + "/" + nextAnniv5Date.getFullYear() + "</b>"]);
+    }
+    // sort by event date
+    dates.sort(function (a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0});
+    var sepplaced = false;
+    for (var [dat, even] of dates) {
+        if (!sepplaced && dat - now > 365*864E5) {
+            sepplaced = true;
+            todisplay += "<hr/>";
+        }
+        todisplay += "<p>" + even + "</p>\n";
+    }
+    // display it
+    document.getElementById('result_div').innerHTML = todisplay;
+}
+function calcIfEnter() {
+    if(event.keyCode == 13) {
+        calc();
+    }
+}
+function updateToday(diff) {
+    var now = dateIntputToObj(document.datation.today.value);
+    now.setFullYear(now.getFullYear() + diff);
+    document.datation.today.value = [
+        now.getFullYear(),
+        twoDigits(now.getMonth() + 1),
+        twoDigits(now.getDate())].join('-');
+    calc();
+}
+</script>
+</head>
+<body onload="defaultDate();calc()">
+<form name="datation" onsubmit="calc()">
+Date de naissance: <input name="birth" type="date" onkeydown="calcIfEnter()"/><br/>
+Date actuelle: <input name="today" type="date" onkeydown="calcIfEnter()"/>
+<input type="button" value="+" onclick="updateToday(1)"><input type="button" value="-" onclick="updateToday(-1)">
+<br/>
+<input type="button" value="Trouver les prochains anniversaires" onclick="calc()"/>
+</form>
+<hr/>
+<div id="result_div">
+Les résultats vont apparaître ici.
+</div>
+</body>
+</html>
