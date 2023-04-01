@@ -26,16 +26,19 @@ function defaultDate() {
 
 // The possible periods
 const EARTH_YEAR = 365.256363004;
+const MERCURY_YEAR = 87.9691;
 // in days
 const SOLAR_SYSTEM_DURATIONS = {
-    'années mercuriennes': 87.9691,
-    'jours mercuriens': 58.646,
+    'années mercuriennes': MERCURY_YEAR,
+    'jours sidéraux mercuriens': 58.6458, // résonnance spin-orbite 3:2
+    'jours mercuriens': 2*MERCURY_YEAR, 
     'années terrestres': EARTH_YEAR,
     'jours terrestres': 1,
     '000 heures': 1000/24,
     '000 000 secondes': 1000000/24/3600,
     'années vénusiennes': 224.701,
-    'jours vénusiens': 116.75,
+    'jours sidéraux vénusiens': 243.023,
+    'jours vénusiens': 116.75 + 31/86400, //+31s
     'années martiennes': 686.980,
     'années joviennes': 11.862*EARTH_YEAR,
     'années saturniennes': 29.4571*EARTH_YEAR,
