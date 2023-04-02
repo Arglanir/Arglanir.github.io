@@ -98,6 +98,9 @@ function calcOnlyOne() {
 
 /** Calculates the next anniversaries, updates the query and document */
 function calcMultiple() {
+    
+    delete SOLAR_SYSTEM_DURATIONS['jours terrestres'];
+    
     // extract value
     var birthdates = document.datation.births.value;
     // update url
@@ -137,12 +140,18 @@ function calcMultiple() {
     // display it
     var todisplay = "";    
     
-    var sepplaced = false;
+    var lastDisplayedDay = 1;
     for (var [dat, person, even] of datesAndPeople) {
-        if (!sepplaced && dat - now > 8*864E5) {
-            sepplaced = true;
+        var currentDisplayedDay = null;
+        try {
+            currentDisplayedDay = dat.getDate();
+        } catch (e) {
+            currentDisplayedDay = new Date(dat).getDate();
+        }
+        if (currentDisplayedDay != lastDisplayedDay) {
             todisplay += "<hr/>";
         }
+        lastDisplayedDay = currentDisplayedDay;
         if (dat - now > 30*864E5) break;
         var birthdate = 
         todisplay += "<p><a href=\"anniversaires_systeme_solaire.html?d=" + names2date[person] + "\">" + person + "</a> aura " + even + "</p>\n";
