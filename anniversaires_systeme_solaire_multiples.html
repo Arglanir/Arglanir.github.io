@@ -1,0 +1,20 @@
+<!doctype html>
+<head>
+<meta charset="UTF-8">
+<title>Anniversaires dans le système solaire pour une famille</title>
+<script type="text/javascript" src="anniversaires_systeme_solaire.js" ></script>
+</head>
+<body onload="defaultDate();calcMultiple()">
+<form name="datation" onsubmit="calcMultiple()">
+Dates de naissance: <textarea name="births" onkeydown="calcIfEnter(1)"></textarea><br/>
+Date actuelle: <input name="today" type="date" onkeydown="calcIfEnter(1)"/>
+<input type="button" value="+" onclick="updateToday(1,1)"><input type="button" value="-" onclick="updateToday(-1,1)">
+<br/>
+<input type="button" value="Trouver les prochains anniversaires" onclick="calcMultiple()"/>
+</form>
+<hr/>
+<div id="result_div">
+Les résultats vont apparaître ici.
+</div>
+</body>
+</html>
