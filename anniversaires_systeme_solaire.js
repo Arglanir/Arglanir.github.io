@@ -53,6 +53,7 @@ const SOLAR_SYSTEM_DURATIONS = {
     'années ceresiennes': 4.60*EARTH_YEAR,
     'année uranusienne': 84.0205*EARTH_YEAR,
     'jours lunaires': 29.530589,
+    '000 semaines': 7000,
     
 }
 
@@ -79,7 +80,7 @@ function calcOnlyOne() {
     // get current age
     var now = dateIntputToObj(document.datation.today.value);
     
-    dates = calc(date, now);
+    var dates = calc(date, now, 9);
     
     
     var todisplay = "";
@@ -94,7 +95,6 @@ function calcOnlyOne() {
     // display it
     document.getElementById('result_div').innerHTML = todisplay;
 }
-
 
 /** Calculates the next anniversaries, updates the query and document */
 function calcMultiple() {
@@ -122,7 +122,7 @@ function calcMultiple() {
             var date = dateIntputToObj(splitted[1]);
             names2date[person] = [date.getFullYear(), twoDigits(date.getMonth() + 1), twoDigits(date.getDate())].join('-');
             
-            var dates = calc(date, now);
+            var dates = calc(date, now, 2);
             for (var table of dates) {
                 datesAndPeople.push([table[0], person, table[1]]);
             }
@@ -160,10 +160,28 @@ function calcMultiple() {
     document.getElementById('result_div').innerHTML = todisplay;
 }
 
+/**
+Get the next significant number by the number of minimum significant digit.
+*/
+function nextSignificantNumber(number, minDigits) {
+    let asStr = number.toString();
+    if (asStr.length <= minDigits) {
+        return number;
+    }
+    let nbNonSignificantDigits = asStr.length - minDigits;
+    if (parseInt(asStr.slice(minDigits)) == 0) {
+        return number;
+    }
+    return (parseInt(asStr.slice(0, minDigits))+1)*Math.pow(10, nbNonSignificantDigits);
+}
+
+
 /** Calculates the next anniversaries
 @return array [[date, text],...]
 */
-function calc(date, now) {
+function calc(date, now, significantDigits, boldForSignificantDigits) {
+    significantDigits = significantDigits?significantDigits:1;
+    boldForSignificantDigits = boldForSignificantDigits?boldForSignificantDigits:1;
     
     var elapsedEarthDays = (now - date)/1000/3600/24 - 1;
     var dates = []; // [future date, event] for sorting
@@ -174,7 +192,18 @@ function calc(date, now) {
         var nextAnnivAge = Math.ceil(currentAge);
         var nextAnnivInDays = nextAnnivAge*duration;
         var nextAnnivDate = date.addDays(nextAnnivInDays);
-        dates.push([nextAnnivDate.valueOf(), nextAnnivAge + " " + type + " le " + twoDigits(nextAnnivDate.getDate()) + "/" + twoDigits(nextAnnivDate.getMonth() + 1) + "/" + nextAnnivDate.getFullYear()]);
+        //dates.push([nextAnnivDate.valueOf(), nextAnnivAge + " " + type + " le " + twoDigits(nextAnnivDate.getDate()) + "/" + twoDigits(nextAnnivDate.getMonth() + 1) + "/" + nextAnnivDate.getFullYear()]);
+        // significant digits
+        for (var i = 1; i <= significantDigits; i++) {
+            var otherAge = nextSignificantNumber(nextAnnivAge, i);
+            //if (otherAge == nextAnnivAge) continue;
+            if (i > 1 && otherAge == nextSignificantNumber(nextAnnivAge, i-1)) continue;
+            var nextAnnivForOtherAge = date.addDays(otherAge * duration);
+            var prefix = i<=boldForSignificantDigits ? "<b title=\"" + i + " chiffres significatifs\">" : "";
+            var suffix = i<=boldForSignificantDigits ? "</b>" : "";
+            dates.push([nextAnnivForOtherAge, prefix + otherAge + " " + type + " le " + twoDigits(nextAnnivForOtherAge.getDate()) + "/" + twoDigits(nextAnnivForOtherAge.getMonth() + 1) + "/" + nextAnnivForOtherAge.getFullYear() + suffix]);
+        }
+        /*
         // multiples of 5
         var multiple = 5;
         if (nextAnnivAge < 5) {
@@ -196,6 +225,7 @@ function calc(date, now) {
         }
         var nextAnniv5Date = date.addDays(nextAnniv5InDays);
         dates.push([nextAnniv5Date, "<b>" + nextAnnivAgeBy5*multiple + " " + type + " le " + twoDigits(nextAnniv5Date.getDate()) + "/" + twoDigits(nextAnniv5Date.getMonth() + 1) + "/" + nextAnniv5Date.getFullYear() + "</b>"]);
+        */
     }
     // sort by event date
     dates.sort(function (a,b){return a[0]<b[0]?-1:a[0]>b[0]?1:0});
