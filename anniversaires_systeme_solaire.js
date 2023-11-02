@@ -37,23 +37,23 @@ const EARTH_YEAR = 365.256363004;
 const MERCURY_YEAR = 87.9691;
 // in days
 const SOLAR_SYSTEM_DURATIONS = {
-    'années mercuriennes': MERCURY_YEAR,
+    'années mercuriennes': MERCURY_YEAR,  // hermanniversaire
     'jours sidéraux mercuriens': 58.6458, // résonnance spin-orbite 3:2
-    'jours mercuriens': 2*MERCURY_YEAR, 
-    'années terrestres': EARTH_YEAR,
-    'jours terrestres': 1,
+    'jours mercuriens': 2*MERCURY_YEAR,   // hermédiversaire
+    'années terrestres': EARTH_YEAR,      // anniversaire
+    'jours terrestres': 1,                // kilodiversaire
     '000 heures': 1000/24,
-    '000 000 secondes': 1000000/24/3600,
-    'années vénusiennes': 224.701,
-    'jours sidéraux vénusiens': 243.023,
-    'jours vénusiens': 116.75 + 31/86400, //+31s
-    'années martiennes': 686.980,
-    'années joviennes': 11.862*EARTH_YEAR,
-    'années saturniennes': 29.4571*EARTH_YEAR,
-    'années ceresiennes': 4.60*EARTH_YEAR,
-    'année uranusienne': 84.0205*EARTH_YEAR,
-    'jours lunaires': 29.530589,
-    '000 semaines': 7000,
+    '000 000 secondes': 1000000/24/3600,  // mégasecondiversaire ? gigasecondiversaire ?
+    'années vénusiennes': 224.701,        // vénéranniversaire
+    'jours sidéraux vénusiens': 243.023,  // vénediversaire
+    'jours vénusiens': 116.75 + 31/86400, //+31s! vénediversaire aussi
+    'années martiennes': 686.980,         // aréanniversaire
+    'années joviennes': 11.862*EARTH_YEAR,// jovianniversaire
+    'années saturniennes': 29.4571*EARTH_YEAR, // saturanniversaire
+    'années ceresiennes': 4.60*EARTH_YEAR, // ceresanniversaire
+    'année uranusienne': 84.0205*EARTH_YEAR, // ... 1 per life :-)
+    'jours lunaires': 29.530589,          // sélédiversaire 
+    '000 semaines': 7000,                 // hebdiversaire
     
 }
 
