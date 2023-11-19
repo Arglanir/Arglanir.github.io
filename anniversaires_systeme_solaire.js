@@ -36,7 +36,7 @@ const translations = {
 var selected_locale = "en";
 for (var lang of navigator.languages) {
     if (translations[lang]) {
-        //selected_locale = lang;
+        selected_locale = lang;
         break;
     }
 }
