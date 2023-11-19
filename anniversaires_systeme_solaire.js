@@ -1,4 +1,73 @@
 /** calculation library for anniversaires_systeme_solaire.html and others */
+
+/************************* Internationalization ***************************/
+const translations = {
+    "fr": {}, // default language
+    "en": {
+        'années mercuriennes': 'Mercurian years',
+        'jours sidéraux mercuriens': 'sideral Mercurian days',
+        'jours mercuriens': 'Mercurian days',
+        'années terrestres': 'Earth years',
+        'jours terrestres': 'Earth days',
+        '000 heures': '000 hours',
+        '000 000 secondes': '000 000 seconds',
+        'années vénusiennes': 'Venusian years',
+        'jours sidéraux vénusiens': 'sideral Venusian days',
+        'jours vénusiens': 'Venusian days',
+        'années martiennes': 'Martian years',
+        'années joviennes': 'Jovian years',
+        'années saturniennes': 'Saturnian years',
+        'années ceresiennes': 'Ceresian years',
+        'année uranusienne': 'Uranusian years',
+        'jours lunaires': 'Moony days',
+        '000 semaines': '000 weeks',         
+        'chiffres significatifs': 'significative digits',
+        ' le ': ' on the ', // age... when
+        ' aura ': ' will have ',
+        'Date de naissance :' : 'Birth date:',
+        'Dates de naissance :' : 'Birth dates:',
+        'Date actuelle :' : 'Current date:',
+        'Anniversaires dans le système solaire': 'Birth parties in the Solar system',
+        'Trouver les prochains anniversaires': 'Find next birthday parties!',
+        "Plein d'anniversaires dans le système solaire":"Multiple birthday parties in the solar system",
+    }
+}
+
+var selected_locale = "en";
+for (var lang of navigator.languages) {
+    if (translations[lang]) {
+        //selected_locale = lang;
+        break;
+    }
+}
+function t(text) {
+    if (selected_locale == "fr") return text; // no warning, default language
+    if (translations[selected_locale][text]) return translations[selected_locale][text];
+    console.log("Missing "+selected_locale+" translation for: '" + text + "'");
+    return text;
+}
+function translateElement(element) {
+    var totranslate = element.innerText;
+    var tochange = function (trad) { element.innerText = trad; }
+    if (element.hasAttribute(element.getAttribute("arglanir-i18n"))) {
+        tochange = function (trad) { element.setAttribute(element.getAttribute("arglanir-i18n"), trad); }
+        totranslate = element.getAttribute(element.getAttribute("arglanir-i18n"));
+    }
+    if (element.hasAttribute("arglanir-i18n-original")) {
+        totranslate = element.getAttribute("arglanir-i18n-original");
+    }
+    var translation = t(totranslate);
+    tochange(translation);
+}
+function translateDoc() {
+    document
+        // Find all elements that have the key attribute
+        .querySelectorAll("[arglanir-i18n]")
+        .forEach(translateElement);
+    //document.title = t(document.title);
+}
+
+
 /** Write number as two digits (for days/months) */
 function twoDigits(z) {
     return z.toString().padStart(2, '0');
@@ -54,7 +123,6 @@ const SOLAR_SYSTEM_DURATIONS = {
     'année uranusienne': 84.0205*EARTH_YEAR, // ... 1 per life :-)
     'jours lunaires': 29.530589,          // sélédiversaire 
     '000 semaines': 7000,                 // hebdiversaire
-    
 }
 
 /** Utility functions */
@@ -94,6 +162,7 @@ function calcOnlyOne() {
     }
     // display it
     document.getElementById('result_div').innerHTML = todisplay;
+    translateDoc();
 }
 
 /** Calculates the next anniversaries, updates the query and document */
@@ -154,10 +223,12 @@ function calcMultiple() {
         lastDisplayedDay = currentDisplayedDay;
         if (dat - now > 30*864E5) break;
         var birthdate = 
-        todisplay += "<p><a href=\"anniversaires_systeme_solaire.html?d=" + names2date[person] + "\">" + person + "</a> aura " + even + "</p>\n";
+        todisplay += "<p><a href=\"anniversaires_systeme_solaire.html?d=" + names2date[person] + "\">" + person + "</a>" + t(" aura ") + even + "</p>\n";
     }
     // display it
     document.getElementById('result_div').innerHTML = todisplay;
+    
+    translateDoc();
 }
 
 /**
@@ -199,9 +270,9 @@ function calc(date, now, significantDigits, boldForSignificantDigits) {
             //if (otherAge == nextAnnivAge) continue;
             if (i > 1 && otherAge == nextSignificantNumber(nextAnnivAge, i-1)) continue;
             var nextAnnivForOtherAge = date.addDays(otherAge * duration);
-            var prefix = i<=boldForSignificantDigits ? "<b title=\"" + i + " chiffres significatifs\">" : "";
+            var prefix = i<=boldForSignificantDigits ? "<b title=\"" + i + " "+t("chiffres significatifs")+"\">" : "";
             var suffix = i<=boldForSignificantDigits ? "</b>" : "";
-            dates.push([nextAnnivForOtherAge, prefix + otherAge + " " + type + " le " + twoDigits(nextAnnivForOtherAge.getDate()) + "/" + twoDigits(nextAnnivForOtherAge.getMonth() + 1) + "/" + nextAnnivForOtherAge.getFullYear() + suffix]);
+            dates.push([nextAnnivForOtherAge, prefix + otherAge + " " + t(type) + t(" le ") + twoDigits(nextAnnivForOtherAge.getDate()) + "/" + twoDigits(nextAnnivForOtherAge.getMonth() + 1) + "/" + nextAnnivForOtherAge.getFullYear() + suffix]);
         }
         /*
         // multiples of 5
@@ -242,7 +313,11 @@ function calcIfEnter(isMultiple) {
 /** change todays' date */
 function updateToday(diff, isMultiple) {
     var now = dateIntputToObj(document.datation.today.value);
-    now.setFullYear(now.getFullYear() + diff);
+    if (isMultiple) {
+        now.setMonth(now.getMonth() + diff);
+    } else {
+        now.setFullYear(now.getFullYear() + diff);
+    }
     document.datation.today.value = [
         now.getFullYear(),
         twoDigits(now.getMonth() + 1),

@@ -1,16 +1,16 @@
 <!doctype html>
 <head>
 <meta charset="UTF-8">
-<title>Anniversaires dans le système solaire</title>
+<title arglanir-i18n="inner">Anniversaires dans le système solaire</title>
 <script type="text/javascript" src="anniversaires_systeme_solaire.js" ></script>
 </head>
 <body onload="defaultDate();calcOnlyOne()">
 <form name="datation" onsubmit="calcOnlyOne()">
-Date de naissance: <input name="birth" type="date" onkeydown="calcIfEnter()"/><br/>
-Date actuelle: <input name="today" type="date" onkeydown="calcIfEnter()"/>
+<span arglanir-i18n="inner">Date de naissance :</span> <input name="birth" type="date" onkeydown="calcIfEnter()"/><br/>
+<span arglanir-i18n="inner">Date actuelle :</span> <input name="today" type="date" onkeydown="calcIfEnter()"/>
 <input type="button" value="+" onclick="updateToday(1)"><input type="button" value="-" onclick="updateToday(-1)">
 <br/>
-<input type="button" value="Trouver les prochains anniversaires" onclick="calcOnlyOne()"/>
+<input type="button" arglanir-i18n="value" value="Trouver les prochains anniversaires" onclick="calcOnlyOne()"/>
 </form>
 <hr/>
 <div id="result_div">
