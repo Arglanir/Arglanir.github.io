@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discours Toulouse Capitole</title>
+    <script>
+
+        const defaultValues = {
+            div0: 'Cher',
+            div1: 'personne',
+            div2: 'thème',
+            div3: 'aides',
+            divtime: '10',
+            divdate: 'date',
+            divtype: 'discours',
+            multiple: '1'
+        };
+        // Function to get query string parameters
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            var to_return = {};
+            for (const key of Object.keys(defaultValues)) {
+                console.log("key " + key    + " defaultValue " + defaultValues[key] + " params.get(key) " + params.get(key));
+                to_return[key] = params.get(key) || defaultValues[key];
+            }
+            console.log("On startup:");
+            console.log(to_return);
+            return to_return;
+        }
+
+        // Function to update the query string
+        function updateQueryString(key, value) {
+            const params = new URLSearchParams(window.location.search);
+            params.set(key, value);
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Initialize contentEditable divs with query string values
+        window.onload = () => {
+            const queryParams = getQueryParams();
+            for (const key of Object.keys(defaultValues)) {
+                document.getElementById(key).textContent = queryParams[key];
+                // Add event listeners to update query string on content change
+                document.getElementById(key).addEventListener('input', (e) => {
+                    if (e.target.textContent.trim() === '') {
+                        e.target.textContent = defaultValues[key];
+                    }
+                    updateQueryString(key, e.target.textContent);
+                    if (key === 'div0') {
+                        document.getElementById('spanfem').textContent = e.target.textContent.endsWith('e') ? 'e' : '';
+                    }
+                });
+            }
+            // if argument "multipe" is set to n, repeat the div one_talk_div n-1 times
+            queryParams.multiple = parseInt(queryParams.multiple, 10) || 1;
+            const othersDiv = document.getElementById('others');
+            for (let i = 1; i < queryParams.multiple; i++) {
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = document.getElementById('one_talk_div').innerHTML;
+                /*newDiv.querySelectorAll('.editable-div').forEach(div => {
+                    div.textContent = div.textContent.replace(/\d+/, (match) => parseInt(match, 10) + i);
+                });*/
+                othersDiv.appendChild(newDiv);
+            }
+        };
+    </script>
+    <style>
+        div.editable-div {
+            border: 1px solid #ccc;
+            color: black;
+            padding: 10px;
+            margin: 10px 0;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div id="one_talk_div">
+    <h1>Discours Toulouse Capitole</h1>
+    <span id="div0" class="editable-div" contenteditable="true">Cher</span>
+    <span id="div1" class="editable-div" contenteditable="true"></span>,<br/>
+    Tu es invité<span id="spanfem"></span> à offrir un
+    <span id="divtype" class="editable-div" contenteditable="true">discours</span>
+    de <b><span id="divtime" class="editable-div" contenteditable="true">10</span> minutes</b>
+    à notre réunion de Sainte-Cène du <span id="divdate" class="editable-div" contenteditable="true"></span>
+    sur le thème : <b><span id="div2" class="editable-div" contenteditable="true"></span></b>.<br/>
+    
+    Tu peux t'inspirer des ressources suivantes :<br/>
+    <div id="div3" class="editable-div" contenteditable="true"></div>
+    
+    Tu peux aussi consulter des informations sur la préparation pour un discours sur
+    <a href="https://fr.eglisedejesus-christ.org/ressources-pour-la-r%C3%A9union-de-sainte-c%C3%A8ne/pour-les-orateurs?lang=fra-fr"
+    target="_blank">le site de l'église en France</a>, il y a beaucoup de bons conseils !<br/>
+    
+    Merci beaucoup pour ta participation !
+    <!-- Texte de signature, ajusté sur la droite -->
+    <div style="text-align: right; margin-top: 5px;">Avec amour 💜<br/><i>L'épiscopat</i></div>
+    </div>
+    <div id="multiple"  class="editable-div" contenteditable="true" style="min-height: 20px;float:left;"></div>
+    <div id="others"></div>
+</body>
+</html>
